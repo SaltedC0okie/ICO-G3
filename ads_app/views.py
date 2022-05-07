@@ -4,7 +4,6 @@ import sys
 
 from django.shortcuts import render
 from operator import itemgetter
-from cytoolz import take
 
 from django.http import HttpResponse, FileResponse
 
