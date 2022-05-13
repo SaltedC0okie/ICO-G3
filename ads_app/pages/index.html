@@ -16,12 +16,13 @@
 					for(var i = 0; i < divsToHide.length; i++){
 						divsToHide[i].style.visibility = "hidden";
 						divsToHide[i].style.required = 'false';
+
 					}
 
 				}
 			};
 		</script>
-		<title>ADS Schedule Optimus Prime</title>
+		<title>ADS Schedule Optimizer</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
@@ -29,8 +30,8 @@
 		{% load static %}
 		<link rel="stylesheet" href="{% static 'ads_app/styles.css' %}">
 	</head>
-	<body>
-	
+	<body onload="yesnoCheck();">
+
 		<div class="sidenav">
 		   {% block sidebar %}
 		   <ul class="sidebar-nav">
@@ -40,7 +41,7 @@
 		   </ul>
 		   {% endblock %}
 		</div>
-		
+
 		<form class="content" action="results" method="POST" enctype="multipart/form-data">{% csrf_token %}
 			<br>
 			<p>Select Metrics to evaluate the algorithm- To select multiple metrics, press CTRL + Left Click</p>
@@ -56,28 +57,29 @@
 					<option value="ClassroomInconsistency">ClassroomInconsistency</option>
 			</select>
 			<br><br>
-			
+
 			<p>Did you make any changes to the structure of the file?</p>
 
 			<div>
 				<input type="radio" id="no_changes" name="changed" value="false"
 					checked onclick="yesnoCheck();">
 				<label for="no_changes">No</label>
-				
+
 				<input type="radio" id="yes_changes" name="changed" value="true"
-					checked onclick="yesnoCheck();">
+					 onclick="yesnoCheck();">
 				<label for="yes_changes">Yes</label>
 
 				<br>
-				<p>Insert the corresponding maximum thresholds for the Algorithms (0 - 100%)</p>
-				<input type="text" class="max" id="RoomlessLessons_max" name="RoomlessLessons_max" >    <label class="max" for="RoomlessLessons_max">Roomless Lesson Threshold</label> <br>
-				<input type="text" class="max" id="Overbooking_max" name="Overbooking_max" >            <label class="max" for="Overbooking_max">Overbooking Threshold</label> <br>
-				<input type="text" class="max" id="Underbooking_max" name="Underbooking_max" >          <label class="max" for="Underbooking_max">Underbooking Threshold</label> <br>
-				<input type="text" class="max" id="BadClassroom_max" name="BadClassroom_max" >          <label class="max" for="BadClassroom_max">Bad Classroom Threshold</label> <br>
+				<br>
+				<p>Insert the corresponding maximum constraints for the Algorithms (0 - 100%)</p>
+				<input type="text" class="max" id="RoomlessLessons_max" name="RoomlessLessons_max" >    <label class="max" for="RoomlessLessons_max">Roomless Lesson Constraint</label> <br>
+				<input type="text" class="max" id="Overbooking_max" name="Overbooking_max" >            <label class="max" for="Overbooking_max">Overbooking Constraint</label> <br>
+				<input type="text" class="max" id="Underbooking_max" name="Underbooking_max" >          <label class="max" for="Underbooking_max">Underbooking Constraint</label> <br>
+				<input type="text" class="max" id="BadClassroom_max" name="BadClassroom_max" >          <label class="max" for="BadClassroom_max">Bad Classroom Constraint</label> <br>
 
 				<br>
 				<p>Please read each label and insert your custom name for it</p>
-		
+
 				<input type="text" class="ifChecked" id="degree" name="degree" >           					     <label class="ifChecked" for="degree">Curso</label> <br>
 				<input type="text" class="ifChecked" id="subject" name="subject" >         					     <label class="ifChecked" for="subject">Unidade de execução</label> <br>
 				<input type="text" class="ifChecked" id="shift" name="shift" >             					     <label class="ifChecked" for="shift">Turno</label> <br>
@@ -93,15 +95,37 @@
 				<input type="text" class="ifChecked" id="characteristics_actual" name="characteristics_actual" > <label class="ifChecked" for="characteristics_actual">Características reais da sala</label> <br>
 			</div>
 			<br>
-			<p>Please select the schedule</p>
 
-			<input type="file" id="myFile" name="filename" required="required" onchange="csvJSON();">
+			<label for="encoding">File encoding type (utf-8,ansi...): </label>
+			<input type="text" id="encoding" name="encoding">
+
+			<br>
+			<br>
+
+			<label for="dateformat">Set the date format on your file, using MM (month), DD (day), YYYY (year), ordering it by your choice and separating them
+				by any special characters (':', '/'...): </label>
+			<input type="text" id="dateformat" name="dateformat" required>
+
+			<br>
+			<br>
+
+			<p>Please select the classroom file to import:</p>
+
+			<input type="file" id="classroom_file" name="classroom_file" onchange="csvJSON();">
+			<br>
+			<br>
+
+			<p>Please select the schedule to import:</p>
+
+			<input type="file" id="myFile" name="filename" onchange="csvJSON();" required>
 			<input type="submit" id="submit" >
 			<br>
 		</form>
 		<br>
+
+
 		<script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.0.7/dist/js/tabulator.min.js"></script>
-		<div id="csv_table" class="csv_table" name="csv_table">	</div>
+		<div id="csv_table" class="csv_table" name="csv_table" style="left: 200px;">	</div>
 		<script>
 		
 			//create Tabulator on DOM element with id "example-table"

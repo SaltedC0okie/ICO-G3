@@ -1,11 +1,11 @@
 from classroom.Classroom import Classroom
+import re
 
 
 class Lesson:
 
-    def __init__(self, course: str, subject: str, shift: str, gang: str, number_of_enrolled_students: int,
-                 week_day: str, start: str, end: str, day: str, requested_characteristics: str):
-
+    def __init__(self, dateformat_list: list, course: str, subject: str, shift: str, gang: str, number_of_enrolled_students: int,
+                 week_day: str, start: str, end: str, day: str, requested_characteristics: str, ):
         self.course = course
         self.subject = subject
         self.shift = shift
@@ -16,6 +16,7 @@ class Lesson:
         self.end = end
         self.day = day
         self.requested_characteristics = requested_characteristics
+        self.dateformat_list = dateformat_list
         self.time_blocks = self.generate_time_blocks()
 
     def get_requested_characteristics(self) -> str:
@@ -52,7 +53,7 @@ class Lesson:
         req_characs = self.requested_characteristics if "," not in self.requested_characteristics else "\"" + self.requested_characteristics + "\""
 
         return course + "," + subject + "," + shift + "," + gang + "," + str(self.number_of_enrolled_students) + "," + \
-                self.week_day + "," + self.start + "," + self.end + "," + self.day + "," + req_characs
+               self.week_day + "," + self.start + "," + self.end + "," + self.day + "," + req_characs
 
     def generate_time_blocks(self) -> list:  # Retorna lista de blocos de tempo da aula numa lista de strings
         """
@@ -61,13 +62,13 @@ class Lesson:
         """
         if self.day == "" or self.start == "" or self.end == "":
             return []
-        start_split = self.start.split(":")
+
+        start_split = re.split('\W+', self.start)
         start_hour = int(start_split[0])
         start_minute = int(start_split[1])
-        end_split = self.end.split(":")
+        end_split = re.split('\W+', self.end)
         end_hour = int(end_split[0])
         end_minute = int(end_split[1])
-
         cur_hour = int(start_hour)
         cur_minute = int(start_minute)
         next_hour = None
@@ -107,11 +108,17 @@ class Lesson:
     def datetime_to_string(self, date: str, start: str, end: str) -> str:
         """
         Takes a string with the date, the beginning and finishing hour of this lesson and turns it into a string with this format: "10/16/2015_09:30:00-10:00:00"
+        :param date:
         :param day:
         :param start:
         :param end:
         :return:
         """
+        month_index = self.dateformat_list.index('MM')
+        day_index = self.dateformat_list.index('DD')
+        year_index = self.dateformat_list.index('YYYY')
+        date_split = re.split('\W+', date)
+        date = date_split[month_index] + '/' + date_split[day_index] + '/' + date_split[year_index]
         if not isinstance(date, str) or not isinstance(start, str) or not isinstance(end, str): return ""
         return date + "_" + start + "-" + end
 
@@ -131,7 +138,8 @@ class Lesson:
         return split[0], time_split[0], time_split[1]
 
     def __str__(self):
-        return "<" + self.subject + " | " + str(self.number_of_enrolled_students) + " | " + self.day + " | " + self.start + "-" + self.end + ">"
+        return "<" + self.subject + " | " + str(
+            self.number_of_enrolled_students) + " | " + self.day + " | " + self.start + "-" + self.end + ">"
 
     def __repr__(self):
         return str(self)

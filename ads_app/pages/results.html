@@ -56,8 +56,12 @@
 			</select>
 			<input type="submit" id="submit" >
 
+			<br>
+			<br>
+			<br>
+
 			<script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.0.7/dist/js/tabulator.min.js"></script>
-			<div id="metric_viewer" class="csv_table" name="metric_viewer">	</div>
+			<div id="metric_viewer" class="csv_table" name="metric_viewer" style="right: 10px;">	</div>
 			<script>
 				var table_data = {{results_metrics|safe}};
 				//create Tabulator on DOM element with id "example-table"
@@ -70,14 +74,38 @@
 						//{title:"Metric", field:"metric", width:150},
 						{% for key,value in table_headers.items %}					
 						{title:"{{value}}", field:"{{key}}", hozAlign:"left"},
-						{% endfor %}					
-					],
-					rowClick:function(e, row){ //trigger an alert message when the row is clicked
-						alert("Row " + row.getData().id + " Clicked!!!!");
-					},
+						{% endfor %}
+					],});
+				table.on("rowClick", function(e, row){
+					var value = row.getCells()[0].getValue()
+					if (value == "Roomless_lessons") {
+						alert("Roomless_lessons: calculates the percentage of lessons without classroom.");
+					} else if (value == "Overbooking") {
+						alert("Overbooking: calculates the Over Booking of the lessons.");
+					}
+					else if (value == "Underbooking") {
+						alert("Underbooking: calculates the UnderBooking of the lessons.");
+					}
+					else if (value == "Bad_classroom") {
+						alert("BadClassroom: calculates the percentage of lessons with classroom without the requested characteristics.");
+					}
+					else if (value == "Gaps") {
+						alert("Gaps: Calculates percentage of gaps that exist in the given class.");
+					}
+					else if (value == "RoomMovements") {
+						alert("RoomMovements: Calculates percentage of RoomMovements that exist in the given class.");
+					}
+					else if (value == "BuildingMovements") {
+						alert("BuildingMovements: Calculates percentage of BuildingMovements that exist in the given class.");
+					}
+					else if (value == "UsedRooms") {
+						alert("UsedRooms: calculates the percentage of used rooms.");
+					}
+					else if (value == "ClassroomInconsistency") {
+						alert("ClassroomInconsistency: calculates the inconsistency of the classroom assigned over the weeks.");
+					}
 				});
 			</script>
-
 		</form>
 		{% load static %}
 		<link rel="stylesheet" href="{% static 'ads_app/styles.css' %}">

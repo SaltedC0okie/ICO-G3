@@ -35,10 +35,8 @@ def overbooking_with_jmp_algorithm(schedule: list, classrooms: list, metrics: li
                     classroom_assigned = True
                     break
             if not classroom_assigned:
-                if lesson.requested_characteristics != "Não necessita de sala" and \
-                        lesson.requested_characteristics != "Lab ISTA" and lesson.number_of_enrolled_students != 0:
-                    assign_lessons30(lessons30, lesson, None)
-                    number_of_roomless_lessons += 1
+                assign_lessons30(lessons30, lesson, None)
+                number_of_roomless_lessons += 1
         else:
             assign_lessons30(lessons30, lesson, c)
 

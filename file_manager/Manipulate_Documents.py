@@ -23,8 +23,9 @@ class Manipulate_Documents:
         self.input_classrooms = input_classrooms
 
         self.classroom_list = []
-        
-    def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool):
+
+    def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, dateformat_list: list,
+                                  encoding='utf-8'):
         """
         Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
 
@@ -34,53 +35,53 @@ class Manipulate_Documents:
         for classroom in self.classroom_list:
             classroom_dict[classroom.name] = classroom
         schedule = []
-
-        csvreader = csv.reader(io.StringIO(file_name.read().decode('utf-8')))
+        if encoding not in ["utf-8", "ansi"]:
+            csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")))
+        else:
+            csvreader = csv.reader(io.StringIO(file_name.read().decode(encoding)))
         next(csvreader)
         for row in csvreader:
-            self.read_schedule_row(row, use_classrooms, classroom_dict, schedule)
+            self.read_schedule_row(row, use_classrooms, classroom_dict, schedule, dateformat_list)
 
         file_name.close()
         return schedule
 
-    def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule):
-        '''
+    def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule, dateformat_list):
+        """
         Reads row of schedule file
+        :param dateformat_list:
         :param row:
         :param use_classrooms:
         :param classroom_dict:
         :param schedule:
         :return:
-        '''
-        if row[5] and row[6] and row[8]:
-            lesson = Lesson(row[0], row[1], row[2], row[3],
-                            int(row[4]), row[5], row[6], row[7], row[8], row[9])
-
+        """
+        if row[5] and row[6] and row[8] and int(row[4]) > 5 and row[9] not in ["Não necessita de sala", "Lab ISTA"]:
+            lesson = Lesson(dateformat_list, row[0], row[1], row[2], row[3], int(row[4]), row[5], row[6], row[7], row[8]
+                            , row[9],)
             if not use_classrooms or not row[10] or row[10] not in classroom_dict.keys():
                 schedule.append((lesson, None))
             else:
                 classroom_dict[row[10]].set_unavailable(lesson.generate_time_blocks())
                 schedule.append((lesson, classroom_dict[row[10]]))
 
-    def import_classrooms(self):
+    def import_classrooms(self, file_name: TemporaryUploadedFile):
         """
-        Imports a csv into a list of Classroom objects
+        Imports a csv into a list of Classroom objects uploaded by the user. If the user doesn't input anything, uses the default file
+        Salas.csv
 
         :return: list of Classroom objects
         """
-
         sum_classroom_characteristics = {}
-        for root, dirs, files in os.walk(self.input_classrooms):
-            for file in files:
-                if file.endswith(tuple(self.ext)):
-                    file_to_open = os.path.join(self.input_classrooms, file)
-                    f = open(file_to_open, 'r', encoding="utf8")
-                    csvreader = csv.reader(f)
-                    header = next(csvreader)
-                    for row in csvreader:
-                        self.read_classroom_row(row, header, sum_classroom_characteristics)
-
-                    f.close()
+        if file_name is not None:
+            csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")))
+        else:
+            file_name = open("input_classrooms/Salas.csv", 'r', encoding="utf8")
+            csvreader = csv.reader(file_name)
+        header = next(csvreader)
+        for row in csvreader:
+            self.read_classroom_row(row, header, sum_classroom_characteristics)
+        file_name.close()
         self.calculate_classroom_rarity(sum_classroom_characteristics)
         return self.classroom_list
 
@@ -109,14 +110,15 @@ class Manipulate_Documents:
         for i in range(5, len(row)):
             if row[i].lower() == "x":
                 charact_list.append(header[i])
-        classroom = Classroom(row[0], row[1], int(row[2]), int(row[3]), charact_list)
-        self.classroom_list.append(classroom)
+        if int(row[2]) > 5:
+            classroom = Classroom(row[0], row[1], int(row[2]), int(row[3]), charact_list)
+            self.classroom_list.append(classroom)
 
-        for characteristic in classroom.get_characteristics():
-            if characteristic in sum_classroom_characteristics:
-                sum_classroom_characteristics[characteristic] += 1
-            else:
-                sum_classroom_characteristics[characteristic] = 1
+            for characteristic in classroom.get_characteristics():
+                if characteristic in sum_classroom_characteristics:
+                    sum_classroom_characteristics[characteristic] += 1
+                else:
+                    sum_classroom_characteristics[characteristic] = 1
 
     def export_schedule(self, schedule: list, file_name: str) -> None:
         """
