@@ -35,12 +35,18 @@
 
 
 			<input type="file" id="mySchedule" name="schedulefilename" required="required" onchange="csvJSON('mySchedule', '#csv_table1');"><br>
+			<p>Aulas</p>
+
             <input type="file" id="myClassroom" name="classroomfilename" onchange="csvJSON('myClassroom', '#csv_table2');"><br>
+			<p>Salas</p>
 
+			<br><br>
 
+			<label for="dateformat">Set the date format on your file, using MM (month), DD (day), YYYY (year), ordering it by your choice and separating them
+				by any special characters (':', '/'...): </label>
+			<input type="text" id="dateformat" name="dateformat" required>
 
-
-
+			<br><br>
 
 			<div>
 			{% for h in hlist %}

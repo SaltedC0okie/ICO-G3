@@ -23,52 +23,39 @@ class Manipulate_Documents:
         self.input_classrooms = input_classrooms
 
         self.classroom_list = []
+<<<<<<< HEAD
 
-    # Código Carlos
+    def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, dateformat_list: list,
+                                  encoding='utf-8'):
+=======
+        
     def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, header_order: list):
+>>>>>>> origin/Carlos-Improvements
         """
         Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
+
         :return: a list with a list Classroom objects and a list of Gang objects
         """
         classroom_dict = {}
         for classroom in self.classroom_list:
             classroom_dict[classroom.name] = classroom
         schedule = []
-
-        csvreader = csv.reader(io.StringIO(file_name.read().decode('utf-8')))
+        if encoding not in ["utf-8", "ansi"]:
+            csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")))
+        else:
+            csvreader = csv.reader(io.StringIO(file_name.read().decode(encoding)))
         next(csvreader)
         for row in csvreader:
+<<<<<<< HEAD
+            self.read_schedule_row(row, use_classrooms, classroom_dict, schedule, dateformat_list)
+=======
             self.read_schedule_row(row, use_classrooms, classroom_dict, schedule, header_order)
+>>>>>>> origin/Carlos-Improvements
 
         file_name.close()
         return schedule
 
-    # Código Nuno
-    # def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, dateformat_list: list,
-    #                               encoding='utf-8'):
-    #
-    #     """
-    #     Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
-    #
-    #     :return: a list with a list Classroom objects and a list of Gang objects
-    #     """
-    #     classroom_dict = {}
-    #     for classroom in self.classroom_list:
-    #         classroom_dict[classroom.name] = classroom
-    #     schedule = []
-    #     if encoding not in ["utf-8", "ansi"]:
-    #         csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")))
-    #     else:
-    #         csvreader = csv.reader(io.StringIO(file_name.read().decode(encoding)))
-    #     next(csvreader)
-    #     for row in csvreader:
-    #
-    #         self.read_schedule_row(row, use_classrooms, classroom_dict, schedule, dateformat_list)
-    #
-    #     file_name.close()
-    #     return schedule
-
-
+<<<<<<< HEAD
     def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule, dateformat_list):
         """
         Reads row of schedule file
@@ -87,7 +74,7 @@ class Manipulate_Documents:
             else:
                 classroom_dict[row[10]].set_unavailable(lesson.generate_time_blocks())
                 schedule.append((lesson, classroom_dict[row[10]]))
-
+=======
     def import_uploaded_classrooms(self, file_name: TemporaryUploadedFile):
         sum_classroom_characteristics = {}
 
@@ -98,7 +85,7 @@ class Manipulate_Documents:
             self.read_classroom_row(row, header, sum_classroom_characteristics)
         self.calculate_classroom_rarity(sum_classroom_characteristics)
         return self.classroom_list
-
+>>>>>>> origin/Carlos-Improvements
 
     def import_classrooms(self, file_name: TemporaryUploadedFile):
         """
@@ -144,8 +131,7 @@ class Manipulate_Documents:
         '''
         if row[header_order[5]] and row[header_order[6]] and row[header_order[8]]:
             lesson = Lesson(row[header_order[0]], row[header_order[1]], row[header_order[2]], row[header_order[3]],
-                            int(row[header_order[4]]), row[header_order[5]], row[header_order[6]], row[header_order[7]],
-                            row[header_order[8]], row[header_order[9]], row[header_order[10]])
+                            int(row[header_order[4]]), row[header_order[5]], row[header_order[6]], row[header_order[7]], row[header_order[8]], row[header_order[9]])
 
             if not use_classrooms or not row[header_order[10]] or row[header_order[10]] not in classroom_dict.keys():
                 schedule.append((lesson, None))

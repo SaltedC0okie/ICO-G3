@@ -1,3 +1,5 @@
+from random import random
+
 from jmetal.core.solution import Solution
 from bitarray import bitarray
 from typing import List
@@ -30,5 +32,5 @@ print(a)
 print(a.any())
 print(a.count())
 print(a.reverse())
-print(a.)
+print(a[random.randint(0, len(a))])
 print(a)
