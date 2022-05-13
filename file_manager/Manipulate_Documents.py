@@ -23,9 +23,12 @@ class Manipulate_Documents:
         self.input_classrooms = input_classrooms
 
         self.classroom_list = []
-
+    
+    #Código Carlos
+    #def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, header_order: list):
     def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, dateformat_list: list,
                                   encoding='utf-8'):
+
         """
         Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
 
@@ -41,10 +44,16 @@ class Manipulate_Documents:
             csvreader = csv.reader(io.StringIO(file_name.read().decode(encoding)))
         next(csvreader)
         for row in csvreader:
+
             self.read_schedule_row(row, use_classrooms, classroom_dict, schedule, dateformat_list)
+            
+            #Código Carlos
+            #self.read_schedule_row(row, use_classrooms, classroom_dict, schedule, header_order) 
+
 
         file_name.close()
         return schedule
+
 
     def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule, dateformat_list):
         """
@@ -64,6 +73,18 @@ class Manipulate_Documents:
             else:
                 classroom_dict[row[10]].set_unavailable(lesson.generate_time_blocks())
                 schedule.append((lesson, classroom_dict[row[10]]))
+
+    def import_uploaded_classrooms(self, file_name: TemporaryUploadedFile):
+        sum_classroom_characteristics = {}
+
+        csvreader = csv.reader(io.StringIO(file_name.read().decode('utf-8')))
+        header = next(csvreader)
+
+        for row in csvreader:
+            self.read_classroom_row(row, header, sum_classroom_characteristics)
+        self.calculate_classroom_rarity(sum_classroom_characteristics)
+        return self.classroom_list
+
 
     def import_classrooms(self, file_name: TemporaryUploadedFile):
         """
@@ -97,6 +118,25 @@ class Manipulate_Documents:
                 characs.append(sum_classroom_characteristics[charac])
             rarity = 1 - (min(characs) / sum(sum_classroom_characteristics.values()))
             classroom.set_rarity(rarity)
+
+    def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule, header_order):
+        '''
+        Reads row of schedule file
+        :param row:
+        :param use_classrooms:
+        :param classroom_dict:
+        :param schedule:
+        :return:
+        '''
+        if row[header_order[5]] and row[header_order[6]] and row[header_order[8]]:
+            lesson = Lesson(row[header_order[0]], row[header_order[1]], row[header_order[2]], row[header_order[3]],
+                            int(row[header_order[4]]), row[header_order[5]], row[header_order[6]], row[header_order[7]], row[header_order[8]], row[header_order[9]])
+
+            if not use_classrooms or not row[header_order[10]] or row[header_order[10]] not in classroom_dict.keys():
+                schedule.append((lesson, None))
+            else:
+                classroom_dict[row[header_order[10]]].set_unavailable(lesson.generate_time_blocks())
+                schedule.append((lesson, classroom_dict[row[header_order[10]]]))
 
     def read_classroom_row(self, row, header, sum_classroom_characteristics):
         '''

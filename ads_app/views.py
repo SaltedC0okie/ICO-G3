@@ -4,6 +4,8 @@ import sys
 
 from django.shortcuts import render
 from operator import itemgetter
+#from cytoolz import take
+
 
 from django.http import HttpResponse, FileResponse
 from alocate.overbooking_with_jmp_algorithm import overbooking_with_jmp_algorithm
@@ -23,22 +25,46 @@ global schedule_overbooking
 global schedule_weekly
 
 
+
 def index(request):
     return render(request, 'index.html')
 
 
+def data(request):
+    request.session["metrics"] = request.POST.getlist('metrics')
+    request.session["roomless_max"] = request.POST.get("RoomlessLessons_max")
+    request.session["over_max"] = request.POST.get("Overbooking_max")
+    request.session["under_max"] = request.POST.get("Underbooking_max")
+    request.session["bad_max"] = request.POST.get("BadClassroom_max")
+
+    #print(request.FILES['schedulefilename'])
+    #request.session['schedulefile'] = request.FILES['schedulefilename']
+    #print(request.session['var'])
+    #request.FILES[0] = 123
+
+
+
+
+    headers=["Degree", "Subject", "Shift", "Grade", "Enrolled", "Day_Week", "Starts", "Ends", "Day", "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
+
+    return render(request, 'data.html', {"hlist" : headers})
+
 def results(request):
-    if request.method == 'POST' and request.FILES['filename']:
+    if request.method == 'POST' and request.FILES['schedulefilename']:
+        s_headers = ["Degree", "Subject", "Shift", "Grade", "Enrolled", "Day_Week", "Starts", "Ends", "Day",
+                     "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
+        order = []
+        for h in s_headers:
+            order.append(int(request.POST.get(h)))
+
+
         mp = Manipulate_Documents()
-        myFile = request.FILES['filename']
-        myFile.seek(0)
-        classrooms_file = request.FILES.get('classroom_file')
-        # classrooms_file.seek(0)
-        classrooms = mp.import_classrooms(classrooms_file)
-        encoding = request.POST.get('encoding')
-        dateformat_list = re.split('\W+', request.POST.get('dateformat'))
-        schedule = mp.import_schedule_documents(myFile, False, dateformat_list, encoding)
-        metrics_chosen = request.POST.getlist('metrics')
+
+        mySchedule = request.FILES['schedulefilename']
+        mySchedule.seek(0)
+        schedule = mp.import_schedule_documents(mySchedule, False, order)
+        metrics_chosen = request.session['metrics']
+
         metrics = []
         metrics_jmp_compatible = []
         for metric in metrics_chosen:
@@ -65,26 +91,32 @@ def results(request):
             if metric == "ClassroomInconsistency":
                 metrics.append(ClassroomInconsistency())
 
-        c_copy = copy.deepcopy(classrooms)
+        if 'classroomfilename' in request.FILES:
+            myClassroom = request.FILES['classroomfilename']
+            myClassroom.seek(0)
+            classrooms = mp.import_uploaded_classrooms(request.FILES['classroomfilename'])
+        else:
+            classrooms = mp.import_classrooms()
 
+        c_copy = copy.deepcopy(classrooms)
         s_copy = copy.deepcopy(schedule)
         a_simple = simple_allocation(s_copy, c_copy)
-
         c_copy = copy.deepcopy(classrooms)
         s_copy = copy.deepcopy(schedule)
         a_weekly = weekly_allocation(s_copy, c_copy)
-
         c_copy = copy.deepcopy(classrooms)
         s_copy = copy.deepcopy(schedule)
 
-        if not request.POST.get("Overbooking_max"):
+        if not request.session["over_max"]:
             a_jmp = overbooking_with_jmp_algorithm(s_copy, c_copy, metrics_jmp_compatible)
         else:
             a_jmp = overbooking_with_jmp_algorithm(s_copy, c_copy, metrics_jmp_compatible,
-                                                   int(request.POST.get("Overbooking_max")))
+
+                                                   int(request.session["over_max"]))
 
         results_metrics = {"Metric": [], "Algorithm - Simple": [], "Algorithm - Weekly": [],
-                           "Algorithm - Overbooking": []}
+                           "Algorithm - Overbooking": []};
+
         for m in metrics:
             m.calculate(a_simple)
             # print(m.name, ": ", round(m.get_percentage() * 100, 2), "%")
@@ -107,13 +139,11 @@ def results(request):
         for sublist in a_jmp.values():
             for item in sublist:
                 schedule_nuno.append(item)
-
         for m in metrics:
             m.calculate(schedule_nuno)
             results_metrics["Metric"].append(m.name)
             results_metrics["Algorithm - Overbooking"].append(str(round(m.get_percentage() * 100, 2)) + "%")
             m.reset_metric()
-
         iterator = len(results_metrics["Algorithm - Simple"])
         i = 0
         final_dict = []
@@ -135,7 +165,6 @@ def results(request):
         global schedule_simple
         global schedule_overbooking
         global schedule_weekly
-
         schedule_simple = a_simple
         schedule_overbooking = schedule_nuno
         schedule_weekly = schedule_andre
@@ -164,18 +193,21 @@ def download_file(request):
     global schedule_weekly
 
     if request.method == 'POST':
-        if request.POST.get("algorithm") == "simple_algorithm":
+        if request.POST.get("b") == "simple_algorithm":
             lines = Manipulate_Documents().export_schedule_str(schedule_simple)
-        if request.POST.get("algorithm") == "weekly_algorithm":
+        if request.POST.get("b") == "weekly_algorithm":
             lines = Manipulate_Documents().export_schedule_str(schedule_weekly)
-        if request.POST.get("algorithm") == "overbooking_algorithm":
+        if request.POST.get("b") == "overbooking_algorithm":
             lines = Manipulate_Documents().export_schedule_str(schedule_overbooking)
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Type'] = 'text/csv'
-        response['Content-Disposition'] = 'attachment; filename=' + str(request.POST.get("algorithm")) + '.csv'
-        content = ""
-        for x in lines:
-            content += x + "\n"
-        response.writelines(content)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Type'] = 'text/csv'
+    response['Content-Disposition'] = 'attachment; filename=Algorithm_Results.csv'
+
+    content = ""
+    for x in lines:
+        content += x + "\n"
+    response.writelines(content)
+
 
     return response

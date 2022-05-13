@@ -3,26 +3,6 @@
 	<head>
 		<link href="https://unpkg.com/tabulator-tables@5.0.7/dist/css/tabulator.min.css" rel="stylesheet">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-		
-		<script type="text/javascript">
-			//If Yes pressed -> Show all fields. If No -> Hide and allow them to be empty when submitting
-			function yesnoCheck() {
-				var divsToHide = document.getElementsByClassName("ifChecked");
-				if (document.getElementById('yes_changes').checked) {
-					for(var i = 0; i < divsToHide.length; i++){
-						divsToHide[i].style.visibility = "visible";
-						divsToHide[i].style.required = 'true';
-					}
-				} else {
-					for(var i = 0; i < divsToHide.length; i++){
-						divsToHide[i].style.visibility = "hidden";
-						divsToHide[i].style.required = 'false';
-					}
-
-				}
-			};
-		</script>
-		
 		<title>ADS Schedule Optimus Prime</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -47,14 +27,6 @@
 			<label id="hidden_weekly" name="hidden_weekly" style="display: none;" type="hidden">{{weekly_algorithm}}</label>
 			<label id="hidden_overbooking" name="hidden_overbooking" style="display: none;" type="hidden">{{overbooking_algorithm}}</label>
 
-			<label>{{overbooking_algorithm}}</label>
-			<label for="algorithm" >Choose the best algorithm for download:</label>
-			<select name="algorithm" id="algorithm">
-				<option value="simple_algorithm">Simple</option>
-				<option value="weekly_algorithm">Weekly</option>
-				<option value="overbooking_algorithm">Overbooking</option>
-			</select>
-			<input type="submit" id="submit" >
 
 			<br>
 			<br>
@@ -106,6 +78,20 @@
 					}
 				});
 			</script>
+
+			<div>
+				<div style="width:25%"></div>
+				<div style="width:25%" onclick="">
+					<button id = "a"  name="b" onclick="download_file" value="simple_algorithm">Simple</button>
+				</div>
+				<div style="width:25%">
+					<button id = "b"  name="b" onclick="download_file" value="weekly_algorithm">Weekly</button>
+				</div>
+				<div style="width: 25%">
+					<button id = "c"  name="b" onclick="download_file" value="overbooking_algorithm">Overbooking</button>
+				</div>
+			</div>
+
 		</form>
 		{% load static %}
 		<link rel="stylesheet" href="{% static 'ads_app/styles.css' %}">

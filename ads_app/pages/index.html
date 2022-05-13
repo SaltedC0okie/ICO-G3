@@ -3,34 +3,20 @@
 	<head>
 		<link href="https://unpkg.com/tabulator-tables@5.0.7/dist/css/tabulator.min.css" rel="stylesheet">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-		<script type="text/javascript">
-			//If Yes pressed -> Show all fields. If No -> Hide and allow them to be empty when submitting
-			function yesnoCheck() {
-				var divsToHide = document.getElementsByClassName("ifChecked");
-				if (document.getElementById('yes_changes').checked) {
-					for(var i = 0; i < divsToHide.length; i++){
-						divsToHide[i].style.visibility = "visible";
-						divsToHide[i].style.required = 'true';
-					}
-				} else {
-					for(var i = 0; i < divsToHide.length; i++){
-						divsToHide[i].style.visibility = "hidden";
-						divsToHide[i].style.required = 'false';
 
-					}
+		<title>ADS Schedule Optimus Prime</title>
 
-				}
-			};
-		</script>
-		<title>ADS Schedule Optimizer</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
 		<!-- Add additional CSS in static file -->
 		{% load static %}
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+
 		<link rel="stylesheet" href="{% static 'ads_app/styles.css' %}">
 	</head>
-	<body onload="yesnoCheck();">
+
+	<body>
 
 		<div class="sidenav">
 		   {% block sidebar %}
@@ -42,7 +28,8 @@
 		   {% endblock %}
 		</div>
 
-		<form class="content" action="results" method="POST" enctype="multipart/form-data">{% csrf_token %}
+		<form class="content" action="data" method="POST" enctype="multipart/form-data">{% csrf_token %}
+
 			<br>
 			<p>Select Metrics to evaluate the algorithm- To select multiple metrics, press CTRL + Left Click</p>
 			<select name="metrics" id="metrics" multiple>
@@ -58,193 +45,19 @@
 			</select>
 			<br><br>
 
-			<p>Did you make any changes to the structure of the file?</p>
-
 			<div>
-				<input type="radio" id="no_changes" name="changed" value="false"
-					checked onclick="yesnoCheck();">
-				<label for="no_changes">No</label>
 
-				<input type="radio" id="yes_changes" name="changed" value="true"
-					 onclick="yesnoCheck();">
-				<label for="yes_changes">Yes</label>
+				<p>Insert the corresponding maximum thresholds for the Algorithms (0 - 100%)</p>
+				<input type="text" class="max" id="RoomlessLessons_max" name="RoomlessLessons_max" >    <label class="max" for="RoomlessLessons_max">Roomless Lesson Threshold</label> <br>
+				<input type="text" class="max" id="Overbooking_max" name="Overbooking_max" >            <label class="max" for="Overbooking_max">Overbooking Threshold</label> <br>
+				<input type="text" class="max" id="Underbooking_max" name="Underbooking_max" >          <label class="max" for="Underbooking_max">Underbooking Threshold</label> <br>
+				<input type="text" class="max" id="BadClassroom_max" name="BadClassroom_max" >          <label class="max" for="BadClassroom_max">Bad Classroom Threshold</label> <br>
 
-				<br>
-				<br>
-				<p>Insert the corresponding maximum constraints for the Algorithms (0 - 100%)</p>
-				<input type="text" class="max" id="RoomlessLessons_max" name="RoomlessLessons_max" >    <label class="max" for="RoomlessLessons_max">Roomless Lesson Constraint</label> <br>
-				<input type="text" class="max" id="Overbooking_max" name="Overbooking_max" >            <label class="max" for="Overbooking_max">Overbooking Constraint</label> <br>
-				<input type="text" class="max" id="Underbooking_max" name="Underbooking_max" >          <label class="max" for="Underbooking_max">Underbooking Constraint</label> <br>
-				<input type="text" class="max" id="BadClassroom_max" name="BadClassroom_max" >          <label class="max" for="BadClassroom_max">Bad Classroom Constraint</label> <br>
-
-				<br>
-				<p>Please read each label and insert your custom name for it</p>
-
-				<input type="text" class="ifChecked" id="degree" name="degree" >           					     <label class="ifChecked" for="degree">Curso</label> <br>
-				<input type="text" class="ifChecked" id="subject" name="subject" >         					     <label class="ifChecked" for="subject">Unidade de execução</label> <br>
-				<input type="text" class="ifChecked" id="shift" name="shift" >             					     <label class="ifChecked" for="shift">Turno</label> <br>
-				<input type="text" class="ifChecked" id="grade" name="grade" >             					   	 <label class="ifChecked" for="grade">Turma</label> <br>
-				<input type="text" class="ifChecked" id="enrolled" name="enrolled" >       					     <label class="ifChecked" for="enrolled">Inscritos no turno (no 1º semestre é baseado em estimativas)</label> <br>
-				<input type="text" class="ifChecked" id="day_week" name="day_week" >       					     <label class="ifChecked" for="day_week">Dia da Semana</label> <br>
-				<input type="text" class="ifChecked" id="begins_at" name="begins_at" >     					     <label class="ifChecked" for="begins_at">Início</label> <br>
-				<input type="text" class="ifChecked" id="ends" name="ends" >               					  	 <label class="ifChecked" for="ends">Fim</label> <br>
-				<input type="text" class="ifChecked" id="day" name="day" >                 					 	 <label class="ifChecked" for="day">Dia</label> <br>
-				<input type="text" class="ifChecked" id="characteristics_asked" name="characteristics_asked" >   <label class="ifChecked" for="characteristics_asked">Características da sala pedida para a aula</label> <br>
-				<input type="text" class="ifChecked" id="classroom" name="classroom" >              			 <label class="ifChecked" for="classroom">Sala da aula</label> <br>
-				<input type="text" class="ifChecked" id="max_capacity" name="max_capacity" >           			 <label class="ifChecked" for="max_capacity">Lotação</label> <br>
-				<input type="text" class="ifChecked" id="characteristics_actual" name="characteristics_actual" > <label class="ifChecked" for="characteristics_actual">Características reais da sala</label> <br>
 			</div>
-			<br>
+			<input type="file" id="file1" name="file1" hidden value= {{request.FILES}}>
 
-			<label for="encoding">File encoding type (utf-8,ansi...): </label>
-			<input type="text" id="encoding" name="encoding">
 
-			<br>
-			<br>
-
-			<label for="dateformat">Set the date format on your file, using MM (month), DD (day), YYYY (year), ordering it by your choice and separating them
-				by any special characters (':', '/'...): </label>
-			<input type="text" id="dateformat" name="dateformat" required>
-
-			<br>
-			<br>
-
-			<p>Please select the classroom file to import:</p>
-
-			<input type="file" id="classroom_file" name="classroom_file" onchange="csvJSON();">
-			<br>
-			<br>
-
-			<p>Please select the schedule to import:</p>
-
-			<input type="file" id="myFile" name="filename" onchange="csvJSON();" required>
-			<input type="submit" id="submit" >
-			<br>
+            <input type="submit" id="submit">
 		</form>
-		<br>
-
-
-		<script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.0.7/dist/js/tabulator.min.js"></script>
-		<div id="csv_table" class="csv_table" name="csv_table" style="left: 200px;">	</div>
-		<script>
-		
-			//create Tabulator on DOM element with id "example-table"
-
-			var headers;	
-
-			//var csv is the CSV file with headers
-			function csvJSON(){
-				var csv = document.getElementById("myFile").files[0];
-				const reader = new FileReader();
-
-				reader.onload = function (e) {
-					const text = e.target.result;
-					const data = csvToArray(text);
-					json_data = JSON.stringify(data);
-					var my_columns = []; // create an empty array
-					for(let i = 0; i < headers.length; i++) {
-						my_columns.push({
-							title: headers[i],
-							field: headers[i],
-							width: 150
-						});
-						console.log(my_columns[i]);
-					}
-					var table = new Tabulator("#csv_table", {
-					height:400, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
-					//assign data to table
-					data:json_data,
-					layout:"fitColumns", //fit columns to width of table (optional)
-					columns: my_columns, //Define Table Columns
-					});
-				};			
-				reader.readAsText(csv);
-			}
-			
-
-			// This will parse a delimited string into an array of
-			// arrays. The default delimiter is the comma, but this
-			// can be overriden in the second argument.
-			function csvToArray( strData, strDelimiter ){
-				// Check to see if the delimiter is defined. If not,
-				// then default to comma.
-				strDelimiter = (strDelimiter || ",");
-
-				// Create a regular expression to parse the CSV values.
-				var objPattern = new RegExp(
-					(
-						// Delimiters.
-						"(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-
-						// Quoted fields.
-						"(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-
-						// Standard fields.
-						"([^\"\\" + strDelimiter + "\\r\\n]*))"
-					),
-					"gi"
-					);
-				// Create an array to hold our data. Give the array
-				// a default empty first row.
-				var arrData = [[]];
-				// Create an array to hold our individual pattern
-				// matching groups.
-				var arrMatches = null;
-				// Keep looping over the regular expression matches
-				// until we can no longer find a match.
-				while (arrMatches = objPattern.exec( strData )){
-					// Get the delimiter that was found.
-					var strMatchedDelimiter = arrMatches[ 1 ];
-					// Check to see if the given delimiter has a length
-					// (is not the start of string) and if it matches
-					// field delimiter. If id does not, then we know
-					// that this delimiter is a row delimiter.
-					if (
-						strMatchedDelimiter.length &&
-						(strMatchedDelimiter != strDelimiter)
-						){
-						// Since we have reached a new row of data,
-						// add an empty row to our data array.
-						arrData.push( [] );
-					}
-					// Now that we have our delimiter out of the way,
-					// let's check to see which kind of value we
-					// captured (quoted or unquoted).
-					if (arrMatches[ 2 ]){
-						// We found a quoted value. When we capture
-						// this value, unescape any double quotes.
-						var strMatchedValue = arrMatches[ 2 ].replace(
-							new RegExp( "\"\"", "g" ),
-							"\""
-							);
-					} else {
-						// We found a non-quoted value.
-						var strMatchedValue = arrMatches[ 3 ];
-					}
-
-					// Now that we have our value string, let's add
-					// it to the data array.
-					arrData[ arrData.length - 1 ].push( strMatchedValue );
-				}
-				
-				//Now that the information is parsed correctly we can send it to the tabulator table
-				var result = [];
-				headers=arrData[0];
-				
-				for(var i=1;i<arrData.length;i++){
-				
-				  var obj = {};
-				  //var currentline=lines[i].split(/('",'+|','+)/g);
-				
-				  for(var j=0;j<headers.length;j++){
-					  obj[headers[j]] = arrData[i][j];
-				  }
-				  result.push(obj);		
-				}	
-				// Return the parsed data.
-				return( result );
-			}		  
-		</script>
-	</body>
-	<br>
+</body>
 </html>
