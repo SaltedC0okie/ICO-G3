@@ -1,7 +1,8 @@
-from jmetal.algorithm.multiobjective import NSGAII
+from jmetal.algorithm.multiobjective import NSGAII, MOEAD
 from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII, UniformReferenceDirectionFactory
-from jmetal.operator.crossover import PMXCrossover, SBXCrossover
+from jmetal.operator.crossover import PMXCrossover, SBXCrossover, DifferentialEvolutionCrossover
 from jmetal.operator.mutation import PermutationSwapMutation, IntegerPolynomialMutation, PolynomialMutation
+from jmetal.util.aggregative_function import Tschebycheff
 from jmetal.util.solution import get_non_dominated_solutions
 from jmetal.util.termination_criterion import StoppingByEvaluations
 from typing import List
@@ -33,7 +34,6 @@ class JMP:
         start = time.time()
         algorithm.run()
         elapsed_time = time.time() - start
-
 
         # print("Elapsed time: ", elapsed_time)
 
@@ -140,6 +140,19 @@ class JMP:
             reference_directions=UniformReferenceDirectionFactory(problem.number_of_objectives, n_points=99),
             termination_criterion=StoppingByEvaluations(max_evaluations=1000)
         )
+
+    def MOEAD(problem):
+        return MOEAD(problem=problem,
+                     population_size=300,
+                     crossover=DifferentialEvolutionCrossover(CR=1.0, F=0.5, K=0.5),
+                     mutation=PolynomialMutation(probability=1.0 / problem.number_of_variables, distribution_index=20),
+                     aggregative_function=Tschebycheff(dimension=problem.number_of_objectives),
+                     neighbor_size=20,
+                     neighbourhood_selection_probability=0.9,
+                     max_number_of_replaced_solutions=2,
+                     weight_files_path='resources/MOEAD_weights',
+                     termination_criterion=StoppingByEvaluations(max=100)
+                     )
 
 
 #    def insgaii(problem):

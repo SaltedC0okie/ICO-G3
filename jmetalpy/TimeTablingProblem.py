@@ -4,6 +4,7 @@ import random
 
 
 class TimeTablingProblem(PermutationProblem):
+
     def __init__(self, lessons: list, classrooms: list, metrics: list):
         super(PermutationProblem, self).__init__()
 
