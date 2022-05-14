@@ -64,7 +64,7 @@ def progress_bar(request):
 
 def results(request):
     if request.method == 'POST' and request.FILES['schedulefilename']:
-        s_headers = ["Degree", "Subject", "Shift", "Grade", "Enrolled", "Day_Week", "Starts", "Ends", "Day",
+        s_headers = ["Course", "Subject", "Shift", "Class", "Enrolled", "Week", "Duration",
                      "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
         order = []
         for h in s_headers:
@@ -77,7 +77,7 @@ def results(request):
         encoding = request.POST.get('encoding')
         dateformat_list = re.split('\W+', request.POST.get('dateformat'))
 
-        schedule = mp.import_schedule_documents(mySchedule, False, order, dateformat_list, encoding)
+        lesson_list, gang_dict = mp.import_lessons_and_gangs(mySchedule, order, dateformat_list, encoding)
         metrics_chosen = request.session['metrics']
 
         metrics = []
@@ -115,8 +115,10 @@ def results(request):
         else:
             classrooms = mp.import_classrooms()
         c_copy = copy.deepcopy(classrooms)
-        s_copy = copy.deepcopy(schedule)
+        l_copy = copy.deepcopy(lesson_list)
+        g_copy = copy.deepcopy(gang_dict)
         a_simple = simple_allocation(s_copy, c_copy, progress)
+
         c_copy = copy.deepcopy(classrooms)
         s_copy = copy.deepcopy(schedule)
 

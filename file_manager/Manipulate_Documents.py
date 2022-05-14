@@ -1,5 +1,7 @@
 import csv
 import os
+
+from Gang.Gang import Gang
 from classroom.Classroom import Classroom
 from lesson.Lesson import Lesson
 from django.core.files.uploadedfile import TemporaryUploadedFile
@@ -25,26 +27,25 @@ class Manipulate_Documents:
         self.classroom_list = []
 
     # Código Carlos
-    def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, header_order: list,
+    def import_lessons_and_gangs(self, file_name: TemporaryUploadedFile, header_order: list,
                                   dateformat_list: list, encoding='utf-8'):
         """
         Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
         :return: a list with a list Classroom objects and a list of Gang objects
         """
-        classroom_dict = {}
-        for classroom in self.classroom_list:
-            classroom_dict[classroom.name] = classroom
-        schedule = []
+        lesson_list = []
+        gang_list = {}
+
         if encoding not in ["utf-8", "ansi"]:
             csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")))
         else:
             csvreader = csv.reader(io.StringIO(file_name.read().decode(encoding)))
         next(csvreader)
         for row in csvreader:
-            self.read_schedule_row(row, use_classrooms, classroom_dict, schedule, header_order, dateformat_list)
+            self.read_schedule_row(row, lesson_list, gang_list, header_order, dateformat_list)
 
         file_name.close()
-        return schedule
+        return lesson_list, gang_list
 
     # Código Nuno
     # def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, dateformat_list: list,
@@ -75,28 +76,43 @@ class Manipulate_Documents:
     """
     if row[5] and row[6] and row[8] and int(row[4]) > 5 and row[9] not in ["Não necessita de sala", "Lab ISTA"]:
     """
-    def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule, header_order, dateformat_list):
+    def read_schedule_row(self, row, lesson_list, gang_list, header_order, dateformat_list):
         """
         Reads row of schedule file
+        :param lesson_list:
+        :param gang_list:
         :param header_order:
         :param dateformat_list:
         :param row:
         :param use_classrooms:
-        :param classroom_dict:
-        :param schedule:
         :return:
         """
 
-        if row[header_order[5]] and row[header_order[6]] and row[header_order[8]]:
-            lesson = Lesson(dateformat_list, row[header_order[0]], row[header_order[1]], row[header_order[2]], row[header_order[3]],
-                            int(row[header_order[4]]), row[header_order[5]], row[header_order[6]], row[header_order[7]],
-                            row[header_order[8]], row[header_order[9]])
+        if row[header_order[5]] and row[header_order[6]]:
+            if not row[header_order[4]]:
+                row[header_order[4]] = 30
 
-            if not use_classrooms or not row[header_order[10]] or row[header_order[10]] not in classroom_dict.keys():
-                schedule.append((lesson, None))
-            else:
-                classroom_dict[row[header_order[10]]].set_unavailable(lesson.generate_time_blocks())
-                schedule.append((lesson, classroom_dict[row[header_order[10]]]))
+            lesson_gangs = []
+            for g in row[header_order[3]].split(","):
+                if g not in gang_list:
+                    gang_list[g] = Gang(g)
+                lesson_gangs.append(gang_list[g])
+
+            lesson = Lesson(dateformat_list,
+                            row[header_order[0]], #Curso
+                            row[header_order[1]], #Unidade de executaçao
+                            row[header_order[2]], #Turno
+                            lesson_gangs, # Turma
+                            int(row[header_order[4]]), # Inscritos no turno
+                            row[header_order[5]], #semana
+                            row[header_order[6]], #duraçao
+                            row[header_order[7]]) #caracteristicas
+
+            lesson_list.append(lesson)
+
+            for g in lesson_gangs:
+                g.add_lesson(lesson)
+
 
     def import_uploaded_classrooms(self, file_name: TemporaryUploadedFile):
         sum_classroom_characteristics = {}
