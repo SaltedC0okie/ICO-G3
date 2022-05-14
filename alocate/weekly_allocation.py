@@ -9,8 +9,8 @@ from metrics.Metric import RoomlessLessons, Overbooking, Underbooking, BadClassr
 from swrlAPI.SWRL_API import query_result
 
 
-def weekly_allocation(main_schedule, main_classrooms, progress: Progress, characs=100, len_characs=20, len_characs_div=4,
-                      rarity=10, overbooking=50, underbooking=50, use_JMP=True,
+def weekly_allocation(main_schedule, main_classrooms, progress: Progress, characs=100, len_characs=20,
+                      len_characs_div=4, rarity=10, overbooking=50, underbooking=50, use_JMP=True,
                       metrics=[RoomlessLessons(), Overbooking(), Underbooking(), BadClassroom()]) -> dict:
     '''
     More advanced allocation algorithm that allocates the apparent best fitting room for the presented lesson
