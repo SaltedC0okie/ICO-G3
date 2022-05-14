@@ -41,7 +41,7 @@ def overbooking_with_jmp_algorithm(schedule: list, classrooms: list, metrics: li
             assign_lessons30(lessons30, lesson, c)
 
     if use_jmp:
-        queryresult = query_result(len(metrics))
+        # queryresult = query_result(len(metrics))
         troublesome_lessons30_key_list = sorted(lessons30, key=lambda k: len(lessons30[k]), reverse=True)[:5]
 
         for tbl in troublesome_lessons30_key_list:
@@ -54,7 +54,7 @@ def overbooking_with_jmp_algorithm(schedule: list, classrooms: list, metrics: li
             trouble_l = [item[0] for item in lessons30[tbl]]
             trouble_c = preparing_classrooms_to_jmp(classrooms, tbl, lessons30[tbl])
             if len(trouble_l) > 3:
-                new_schedule, jmp_metric_results = JMP().run_algorithm(queryresult, trouble_l, list(trouble_c),
+                new_schedule, jmp_metric_results = JMP().run_algorithm([], trouble_l, list(trouble_c),
                                                                        metrics)
                 if new_schedule_is_better(old_metrics, jmp_metric_results, metrics,
                                           max(len(trouble_l), len(list(trouble_c)))):

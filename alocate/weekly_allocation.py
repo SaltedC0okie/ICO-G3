@@ -17,7 +17,6 @@ def weekly_allocation(main_schedule, main_classrooms, characs=100, len_characs=2
 
     :return list[(Lesson, Classroom)]: Returns list of tuples that associates lesson with allocated classroom
     '''
-
     # self.classrooms.sort(key=lambda x: x.normal_capacity)
     main_schedule.sort(key=lambda x: (x[0].gang, x[0].subject, x[0].week_day, time.strptime(x[0].day, '%m/%d/%Y')))
     number_of_roomless_lessons = 0
@@ -25,7 +24,6 @@ def weekly_allocation(main_schedule, main_classrooms, characs=100, len_characs=2
     last_lesson = ""
     cur_classroom = None
     cur_score = 0
-
     for lesson, c in main_schedule:
         if not c:
             if lesson.requested_characteristics == "Não necessita de sala":
@@ -60,9 +58,9 @@ def weekly_allocation(main_schedule, main_classrooms, characs=100, len_characs=2
             cur_classroom.set_unavailable(lesson.time_blocks)
             assign_lessons30(lessons30, lesson, c)
 
-    # print("There are ", number_of_roomless_lessons, " lessons without a classroom.")
+    print("There are ", number_of_roomless_lessons, " lessons without a classroom.")
     metrics = [RoomlessLessons(), Overbooking(), Underbooking(), BadClassroom()]
-    queryresult = query_result(len(metrics))
+    # queryresult = query_result(len(metrics))
 
     count = 0
     if use_JMP and len(metrics) > 0:
@@ -85,7 +83,7 @@ def weekly_allocation(main_schedule, main_classrooms, characs=100, len_characs=2
 
                 if len(lessons) >= 3:
 
-                    new_schedule, JMP_metric_results = JMP().run_algorithm(queryresult, lessons, classrooms, metrics)
+                    new_schedule, JMP_metric_results = JMP().run_algorithm([], lessons, classrooms, metrics)
 
                     if new_schedule_is_better(old_metric_results, JMP_metric_results, metrics,
                                               max(len(lessons), len(classrooms))):

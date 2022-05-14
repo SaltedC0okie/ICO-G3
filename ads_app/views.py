@@ -96,13 +96,15 @@ def results(request):
             classrooms = mp.import_uploaded_classrooms(request.FILES['classroomfilename'])
         else:
             classrooms = mp.import_classrooms()
-
         c_copy = copy.deepcopy(classrooms)
         s_copy = copy.deepcopy(schedule)
         a_simple = simple_allocation(s_copy, c_copy)
         c_copy = copy.deepcopy(classrooms)
+
         s_copy = copy.deepcopy(schedule)
+        print("antes")
         a_weekly = weekly_allocation(s_copy, c_copy)
+        print("depois")
         c_copy = copy.deepcopy(classrooms)
         s_copy = copy.deepcopy(schedule)
 
