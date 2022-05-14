@@ -25,7 +25,8 @@ class Manipulate_Documents:
         self.classroom_list = []
 
     # Código Carlos
-    def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, header_order: list):
+    def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, header_order: list,
+                                  dateformat_list: list, encoding='utf-8'):
         """
         Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
         :return: a list with a list Classroom objects and a list of Gang objects
@@ -34,11 +35,13 @@ class Manipulate_Documents:
         for classroom in self.classroom_list:
             classroom_dict[classroom.name] = classroom
         schedule = []
-
-        csvreader = csv.reader(io.StringIO(file_name.read().decode('utf-8')))
+        if encoding not in ["utf-8", "ansi"]:
+            csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")))
+        else:
+            csvreader = csv.reader(io.StringIO(file_name.read().decode(encoding)))
         next(csvreader)
         for row in csvreader:
-            self.read_schedule_row(row, use_classrooms, classroom_dict, schedule, header_order)
+            self.read_schedule_row(row, use_classrooms, classroom_dict, schedule, header_order, dateformat_list)
 
         file_name.close()
         return schedule
@@ -69,9 +72,13 @@ class Manipulate_Documents:
     #     return schedule
 
 
-    def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule, dateformat_list):
+    """
+    if row[5] and row[6] and row[8] and int(row[4]) > 5 and row[9] not in ["Não necessita de sala", "Lab ISTA"]:
+    """
+    def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule, header_order, dateformat_list):
         """
         Reads row of schedule file
+        :param header_order:
         :param dateformat_list:
         :param row:
         :param use_classrooms:
@@ -79,14 +86,17 @@ class Manipulate_Documents:
         :param schedule:
         :return:
         """
-        if row[5] and row[6] and row[8] and int(row[4]) > 5 and row[9] not in ["Não necessita de sala", "Lab ISTA"]:
-            lesson = Lesson(dateformat_list, row[0], row[1], row[2], row[3], int(row[4]), row[5], row[6], row[7], row[8]
-                            , row[9],)
-            if not use_classrooms or not row[10] or row[10] not in classroom_dict.keys():
+
+        if row[header_order[5]] and row[header_order[6]] and row[header_order[8]]:
+            lesson = Lesson(dateformat_list, row[header_order[0]], row[header_order[1]], row[header_order[2]], row[header_order[3]],
+                            int(row[header_order[4]]), row[header_order[5]], row[header_order[6]], row[header_order[7]],
+                            row[header_order[8]], row[header_order[9]])
+
+            if not use_classrooms or not row[header_order[10]] or row[header_order[10]] not in classroom_dict.keys():
                 schedule.append((lesson, None))
             else:
-                classroom_dict[row[10]].set_unavailable(lesson.generate_time_blocks())
-                schedule.append((lesson, classroom_dict[row[10]]))
+                classroom_dict[row[header_order[10]]].set_unavailable(lesson.generate_time_blocks())
+                schedule.append((lesson, classroom_dict[row[header_order[10]]]))
 
     def import_uploaded_classrooms(self, file_name: TemporaryUploadedFile):
         sum_classroom_characteristics = {}
@@ -133,7 +143,8 @@ class Manipulate_Documents:
             rarity = 1 - (min(characs) / sum(sum_classroom_characteristics.values()))
             classroom.set_rarity(rarity)
 
-    def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule, header_order):
+    """
+        def read_schedule_row(self, row, use_classrooms, classroom_dict, schedule, header_order):
         '''
         Reads row of schedule file
         :param row:
@@ -152,6 +163,8 @@ class Manipulate_Documents:
             else:
                 classroom_dict[row[header_order[10]]].set_unavailable(lesson.generate_time_blocks())
                 schedule.append((lesson, classroom_dict[row[header_order[10]]]))
+
+    """
 
     def read_classroom_row(self, row, header, sum_classroom_characteristics):
         '''

@@ -4,7 +4,7 @@ import sys
 
 from django.shortcuts import render
 from operator import itemgetter
-#from cytoolz import take
+# from cytoolz import take
 
 
 from django.http import HttpResponse, FileResponse
@@ -25,7 +25,6 @@ global schedule_overbooking
 global schedule_weekly
 
 
-
 def index(request):
     return render(request, 'index.html')
 
@@ -37,17 +36,16 @@ def data(request):
     request.session["under_max"] = request.POST.get("Underbooking_max")
     request.session["bad_max"] = request.POST.get("BadClassroom_max")
 
-    #print(request.FILES['schedulefilename'])
-    #request.session['schedulefile'] = request.FILES['schedulefilename']
-    #print(request.session['var'])
-    #request.FILES[0] = 123
+    # print(request.FILES['schedulefilename'])
+    # request.session['schedulefile'] = request.FILES['schedulefilename']
+    # print(request.session['var'])
+    # request.FILES[0] = 123
 
+    headers = ["Degree", "Subject", "Shift", "Grade", "Enrolled", "Day_Week", "Starts", "Ends", "Day", "Requested_Char",
+               "Classroom", "Capacity", "Actual_Char"]
 
+    return render(request, 'data.html', {"hlist": headers})
 
-
-    headers=["Degree", "Subject", "Shift", "Grade", "Enrolled", "Day_Week", "Starts", "Ends", "Day", "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
-
-    return render(request, 'data.html', {"hlist" : headers})
 
 def results(request):
     if request.method == 'POST' and request.FILES['schedulefilename']:
@@ -57,12 +55,13 @@ def results(request):
         for h in s_headers:
             order.append(int(request.POST.get(h)))
 
-
         mp = Manipulate_Documents()
-
         mySchedule = request.FILES['schedulefilename']
         mySchedule.seek(0)
-        schedule = mp.import_schedule_documents(mySchedule, False, order)
+        encoding = request.POST.get('encoding')
+        dateformat_list = re.split('\W+', request.POST.get('dateformat'))
+
+        schedule = mp.import_schedule_documents(mySchedule, False, order, dateformat_list, encoding)
         metrics_chosen = request.session['metrics']
 
         metrics = []
@@ -196,7 +195,8 @@ def download_file(request):
         if request.POST.get("b") == "simple_algorithm":
             lines = Manipulate_Documents().export_schedule_str(schedule_simple)
         if request.POST.get("b") == "weekly_algorithm":
-            lines = Manipulate_Documents().export_schedule_str(schedule_weekly)
+            print("")
+            # lines = Manipulate_Documents().export_schedule_str(schedule_weekly)
         if request.POST.get("b") == "overbooking_algorithm":
             lines = Manipulate_Documents().export_schedule_str(schedule_overbooking)
 
@@ -208,6 +208,5 @@ def download_file(request):
     for x in lines:
         content += x + "\n"
     response.writelines(content)
-
 
     return response
