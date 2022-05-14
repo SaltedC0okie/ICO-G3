@@ -1,4 +1,3 @@
-from alocate.Allocator import Allocator
 from classroom.Classroom import Classroom
 from lesson.Lesson import Lesson
 
@@ -74,13 +73,8 @@ def print_elements_in_list(list):
     print()
 
 
-allocator = Allocator()
-
-test_add_classroom(allocator)
-test_add_lesson(allocator)
 #test_sort_lessons(allocator)
 #test_sort_classrooms(allocator)
-test_simple_allocation(allocator)
 # test_add_classroom_to_lesson(allocator)
 # test_remove_classroom_from_lesson(allocator)
 # test_remove_all_allocations(allocator)

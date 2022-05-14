@@ -1,7 +1,6 @@
 from random import random
 
 from jmetal.core.solution import Solution
-from bitarray import bitarray
 from typing import List
 
 class TimeTablingSolution(Solution):
@@ -27,10 +26,3 @@ class TimeTablingSolution(Solution):
         return new_solution
 
 
-a = bitarray(10)
-print(a)
-print(a.any())
-print(a.count())
-print(a.reverse())
-print(a[random.randint(0, len(a))])
-print(a)
