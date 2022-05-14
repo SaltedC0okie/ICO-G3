@@ -2,6 +2,11 @@ import sys
 import time
 
 import csv
+
+from alocate import Algorithm_Utils
+from alocate.Progress import Progress
+from alocate.simple_allocation import simple_allocation
+from alocate.weekly_allocation import weekly_allocation
 from metrics import Metric
 from metrics.Metric import Gaps, UsedRooms, RoomlessLessons, Overbooking, Underbooking, BadClassroom, RoomMovements, \
     BuildingMovements, ClassroomInconsistency
@@ -9,13 +14,14 @@ from classroom.Classroom import Classroom
 from file_manager.Manipulate_Documents import Manipulate_Documents
 from lesson.Lesson import Lesson
 import random
+import threading
 
 
 class Experiments:
     def __init__(self):
         pass
 
-    def test5(self):
+    """def test5(self):
         md = Manipulate_Documents()
         classrooms = md.import_classrooms()
         schedule = md.import_schedule_documents("Exemplo_de_horario_primeiro_semestre.csv", False)
@@ -25,9 +31,8 @@ class Experiments:
         # print(classrooms)
 
         c_copy = classrooms.copy()
-        g_copy = gangs.copy()
         s_copy = schedule.copy()
-        a_simple = Allocator(c_copy, s_copy, g_copy)
+        a_simple = Allocator(c_copy, s_copy)
 
         print("\nsimple_allocation:\n")
 
@@ -178,9 +183,9 @@ class Experiments:
         print("Used Rooms Percentage:", round(used_rooms_metric.get_percentage() * 100, 2), "%")
         print("Classroom Inconsistency Percentage:", round(classroom_inconsistency_metric.get_percentage() * 100, 2),
               "%")
-        print("Elapsed time: ", elapsed_time, "\n")
+        print("Elapsed time: ", elapsed_time, "\n")"""
 
-    def test20(self):
+    """def test20(self):
         # andre_allocation
         md = Manipulate_Documents()
         classrooms = md.import_classrooms()
@@ -232,7 +237,8 @@ class Experiments:
         print("Elapsed time: ", elapsed_time)
         print("Elapsed time on metricas: ", elapsed_time_metricas)
         print("Elapsed time on convert: ", elapsed_time_convert)
-        print("Tamanho do lessons30: ", tamanho)
+        print("Tamanho do lessons30: ", tamanho)"""
+
 
 
 
@@ -240,5 +246,40 @@ def get_tuplo():
     return (1, 2)
 
 
-e = Experiments()
-e.test5()
+#e = Experiments()
+#e.test()
+
+cena = 0
+
+def sync_test():
+    lock = threading.Lock()
+    x = threading.Thread(target=do_thing, args=(lock,))
+    y = threading.Thread(target=do_thing, args=(lock,))
+    x.start()
+    y.start()
+    x.join()
+    y.join()
+    print(cena)
+
+
+def do_thing(lock):
+    with lock:
+        print("Thread: ", threading.get_ident())
+        time.sleep(2)
+        global cena
+        cena = threading.get_ident()
+
+#sync_test()
+
+def test_thing():
+    md = Manipulate_Documents()
+    classrooms = md.import_classrooms()
+    schedule = md.import_schedule_documents("Exemplo_de_horario_primeiro_semestre.csv", False)
+    progress = Progress()
+
+    a_weekly = weekly_allocation(schedule, classrooms, progress)
+
+    count = Algorithm_Utils.check_for_collisions(a_weekly)
+    print(count)
+
+#test_thing()

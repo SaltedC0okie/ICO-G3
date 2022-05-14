@@ -8,26 +8,32 @@ from operator import itemgetter
 
 
 from django.http import HttpResponse, FileResponse
+import time
+from alocate import Algorithm_Utils
+from alocate.Progress import Progress
 from alocate.overbooking_with_jmp_algorithm import overbooking_with_jmp_algorithm
 from alocate.simple_allocation import simple_allocation
 from alocate.weekly_allocation import weekly_allocation
 from file_manager.Manipulate_Documents import *
+
 from metrics.Metric import Gaps, UsedRooms, RoomlessLessons, Overbooking, Underbooking, BadClassroom, RoomMovements, \
-    BuildingMovements, ClassroomInconsistency
+    BuildingMovements, ClassroomInconsistency, ClassroomCollisions
 from django.shortcuts import render
-from django.http import HttpResponse
-import json
 from lesson.Lesson import *
+
+from django.http import HttpResponse, Http404
+from django.http import JsonResponse
+import json
+
 import copy
 
 global schedule_simple
 global schedule_overbooking
 global schedule_weekly
-
+global progress
 
 def index(request):
     return render(request, 'index.html')
-
 
 def data(request):
     request.session["metrics"] = request.POST.getlist('metrics')
@@ -46,6 +52,15 @@ def data(request):
 
     return render(request, 'data.html', {"hlist": headers})
 
+def progress_bar(request):
+    if request.method == 'GET':
+        global progress
+        percent = progress.get_progress()
+        #print("Progress: ", percent, "%")
+        return JsonResponse({'percent':str(round(percent, 1)), 'error':'0'})
+    else:
+        print("\nNot get, kinda weird\n")
+        return JsonResponse({'percent':'0', 'error':'1'})
 
 def results(request):
     if request.method == 'POST' and request.FILES['schedulefilename']:
@@ -54,7 +69,8 @@ def results(request):
         order = []
         for h in s_headers:
             order.append(int(request.POST.get(h)))
-
+        global progress
+        progress = Progress()
         mp = Manipulate_Documents()
         mySchedule = request.FILES['schedulefilename']
         mySchedule.seek(0)
@@ -89,6 +105,8 @@ def results(request):
                 metrics.append(UsedRooms())
             if metric == "ClassroomInconsistency":
                 metrics.append(ClassroomInconsistency())
+            if metric == "ClassroomCollisions":
+                metrics.append(ClassroomCollisions())
 
         if 'classroomfilename' in request.FILES:
             myClassroom = request.FILES['classroomfilename']
@@ -98,32 +116,41 @@ def results(request):
             classrooms = mp.import_classrooms()
         c_copy = copy.deepcopy(classrooms)
         s_copy = copy.deepcopy(schedule)
-        a_simple = simple_allocation(s_copy, c_copy)
+        a_simple = simple_allocation(s_copy, c_copy, progress)
         c_copy = copy.deepcopy(classrooms)
-
         s_copy = copy.deepcopy(schedule)
-        print("antes")
-        a_weekly = weekly_allocation(s_copy, c_copy)
-        print("depois")
+
+        a_weekly = weekly_allocation(s_copy, c_copy, progress, use_JMP=False) # TODO
+        count = Algorithm_Utils.check_for_collisions(a_weekly)
         c_copy = copy.deepcopy(classrooms)
         s_copy = copy.deepcopy(schedule)
 
         if not request.session["over_max"]:
-            a_jmp = overbooking_with_jmp_algorithm(s_copy, c_copy, metrics_jmp_compatible)
+            a_jmp = overbooking_with_jmp_algorithm(s_copy, c_copy, metrics_jmp_compatible, progress, use_jmp=False) # TODO
         else:
-            a_jmp = overbooking_with_jmp_algorithm(s_copy, c_copy, metrics_jmp_compatible,
-
-                                                   int(request.session["over_max"]))
-
+            a_jmp = overbooking_with_jmp_algorithm( s_copy, c_copy, metrics_jmp_compatible, progress, int(request.POST.get("Overbooking_max")), use_jmp=False) #TODO
+            
         results_metrics = {"Metric": [], "Algorithm - Simple": [], "Algorithm - Weekly": [],
                            "Algorithm - Overbooking": []};
+        count = Algorithm_Utils.check_for_collisions(a_jmp)
+
+        progress.set_total_tasks_metrics(len(metrics)*3-1)
+
+        schedule_s = []
+        for sublist in a_simple.values():
+            for item in sublist:
+                schedule_s.append(item)
 
         for m in metrics:
-            m.calculate(a_simple)
-            # print(m.name, ": ", round(m.get_percentage() * 100, 2), "%")
+            if m.name == "ClassroomCollisions":
+                m.calculate(a_simple)
+            else:
+                m.calculate(schedule_s)
+            #print(m.name, ": ", round(m.get_percentage() * 100, 2), "%")
             results_metrics["Metric"].append(m.name)
             results_metrics["Algorithm - Simple"].append(str(round(m.get_percentage() * 100, 2)) + "%")
             m.reset_metric()
+            progress.inc_cur_tasks_metrics()
 
         schedule_andre = []
         for sublist in a_weekly.values():
@@ -131,20 +158,35 @@ def results(request):
                 schedule_andre.append(item)
 
         for m in metrics:
-            m.calculate(schedule_andre)
+            if m.name == "ClassroomCollisions":
+                m.calculate(a_weekly)
+            else:
+                m.calculate(schedule_andre)
             results_metrics["Metric"].append(m.name)
             results_metrics["Algorithm - Weekly"].append(str(round(m.get_percentage() * 100, 2)) + "%")
             m.reset_metric()
 
+            progress.inc_cur_tasks_metrics()
+ 
         schedule_nuno = []
         for sublist in a_jmp.values():
             for item in sublist:
                 schedule_nuno.append(item)
-        for m in metrics:
-            m.calculate(schedule_nuno)
+
+        len_metrics = len(metrics)
+        for i, m in enumerate(metrics):
+            if m.name == "ClassroomCollisions":
+                m.calculate(a_jmp)
+            else:
+                m.calculate(schedule_nuno)
             results_metrics["Metric"].append(m.name)
             results_metrics["Algorithm - Overbooking"].append(str(round(m.get_percentage() * 100, 2)) + "%")
             m.reset_metric()
+            if i == len_metrics - 2:
+                progress.inc_cur_tasks_metrics()
+            if i != len_metrics - 1:
+                progress.inc_cur_tasks_metrics()
+
         iterator = len(results_metrics["Algorithm - Simple"])
         i = 0
         final_dict = []

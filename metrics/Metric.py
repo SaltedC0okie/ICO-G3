@@ -1,6 +1,8 @@
 import datetime
 from abc import ABC, abstractmethod
 from jmetal.core.problem import Problem
+
+from alocate import Algorithm_Utils
 from classroom import Classroom
 from lesson import Lesson
 import time
@@ -12,7 +14,7 @@ class Metric(ABC):
     def __init__(self, name, prefered_max = 0.4):
         self.name = name
         self.value = []
-        self.prefered_max = 0.4
+        self.prefered_max = prefered_max
         self.weight = 0.5
 
     @abstractmethod
@@ -26,7 +28,7 @@ class Metric(ABC):
 
 class RoomlessLessons(Metric):
 
-    def __init__(self, prefered_max = 0.4):
+    def __init__(self, prefered_max = 0.2):
         super().__init__("Roomless_lessons", prefered_max)
         self.objective = Problem.MINIMIZE
         self.m_type = "lessons"
@@ -50,6 +52,7 @@ class RoomlessLessons(Metric):
         return self.value
 
     def get_percentage(self):
+        if self.value == 0: return 0
         return self.value / self.total
 
     def reset_metric(self):
@@ -59,7 +62,7 @@ class RoomlessLessons(Metric):
 
 class Overbooking(Metric):
 
-    def __init__(self, prefered_max = 0.4):
+    def __init__(self, prefered_max = 0.9):
         super().__init__("Overbooking", prefered_max)
         self.objective = Problem.MINIMIZE
         self.m_type = "lessons"
@@ -80,6 +83,7 @@ class Overbooking(Metric):
                 self.value.append(0)
 
     def get_percentage(self):
+        if len(self.value) == 0: return 0
         return sum(self.value) / len(self.value)
 
     def reset_metric(self):
@@ -88,7 +92,7 @@ class Overbooking(Metric):
 
 class Underbooking(Metric):
 
-    def __init__(self, prefered_max=0.7):
+    def __init__(self, prefered_max=0.95):
         super().__init__("Underbooking", prefered_max)
         self.objective = Problem.MINIMIZE
         self.m_type = "lessons"
@@ -111,6 +115,7 @@ class Underbooking(Metric):
                 self.value.append(0)
 
     def get_percentage(self):
+        if len(self.value) == 0: return 0
         return sum(self.value) / len(self.value)
 
     def reset_metric(self):
@@ -119,7 +124,7 @@ class Underbooking(Metric):
 
 class BadClassroom(Metric):
 
-    def __init__(self, prefered_max = 0.4):
+    def __init__(self, prefered_max = 0.3):
         super().__init__("Bad_classroom", prefered_max)
         self.objective = Problem.MINIMIZE
         self.m_type = "lessons"
@@ -141,6 +146,7 @@ class BadClassroom(Metric):
         return self.value
 
     def get_percentage(self):
+        if self.total == 0: return 0
         return self.value / self.total
 
     def reset_metric(self):
@@ -219,7 +225,7 @@ class Gaps(Metric):
 
 class RoomMovements(Metric):
 
-    def __init__(self, prefered_max = 0.4):
+    def __init__(self, prefered_max = 0.7):
         super().__init__("RoomMovements", prefered_max)
         self.objective = Problem.MINIMIZE
         self.m_type = "gangs"
@@ -409,3 +415,46 @@ class ClassroomInconsistency(Metric):
 
     def reset_metric(self):
         self.value = []
+
+class ClassroomCollisions(Metric):
+
+    def __init__(self, prefered_max = 0.4):
+        super().__init__("ClassroomCollisions", prefered_max)
+        self.objective = Problem.MAXIMIZE
+        self.m_type = "lessons30"
+        self.value = 0
+        self.total = 0
+
+    def calculate(self, lessons30: list):
+        '''
+        Receives a Schedule and calculates the number of times a classroom is assigned more than once in a half hour block
+        :param schedule:
+        :return:
+        '''
+
+        collisions = 0
+        tuples = 0
+        try:
+            for block, half_hour in lessons30.items():
+                classrooms = set()
+                for lesson, classroom in half_hour:
+                    tuples += 1
+                    if not Algorithm_Utils.add_if_not_exists(classrooms, classroom):
+                        collisions += 1
+            self.value = collisions
+            self.total = tuples
+        except AttributeError:
+            self.value = -1
+            self.total = 1
+
+    def get_total_metric_value(self):
+        return self.value
+
+    def get_percentage(self):
+        if self.value == -1:
+            return "-"
+        return self.value / self.total
+
+    def reset_metric(self):
+        self.value = 0
+        self.total = 0

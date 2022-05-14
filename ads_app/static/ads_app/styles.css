@@ -71,4 +71,31 @@ ul {
   /* Height of the footer*/
   height: 20px;
   background: white;
-}}
+}
+
+.progress {
+  position: relative;
+  width: 800px;
+  height: 300px;
+  background: #9cbab4;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 10px;
+  margin-botton: 10px;
+}
+
+.progress__fill {
+  width: 0%;
+  height: 100%;
+  background: #009579;
+  transition: all 0.2s;
+}
+
+.progress__text {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-50%);
+  font: bold 14px "Quicksand", sans-serif;
+  color: #ffffff;
+}

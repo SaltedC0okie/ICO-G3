@@ -128,7 +128,7 @@ USE_TZ = True
 #STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, '/ads_app/static/ads_apps'),  # Here you tell django to look for a folder named 'assets'
+    os.path.join(BASE_DIR, '/ads_app/static/ads_app'),  # Here you tell django to look for a folder named 'assets'
 ]
 MEDIA_URL = '/Output_Documents/'
 MEDIA_ROOT = os.path.join(BASE_DIR, '/app/tmp/')

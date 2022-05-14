@@ -78,3 +78,19 @@ def preparing_classrooms_to_jmp(main_classrooms: list, block: str, half_hour: li
             [block])])
 
     return classrooms
+
+def add_if_not_exists(classrooms: set, classroom: Classroom) -> bool:
+    if classroom in classrooms:
+        return False
+    else:
+        classrooms.add(classroom)
+        return True
+
+def check_for_collisions(lessons30):
+    collisions = 0
+    for block, half_hour in lessons30.items():
+        classrooms = set()
+        for lesson, classroom in half_hour:
+            if not add_if_not_exists(classrooms, classroom):
+                collisions += 1
+    return collisions

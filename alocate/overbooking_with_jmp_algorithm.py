@@ -1,10 +1,11 @@
 from alocate.Algorithm_Utils import sorted_lessons, sorted_classrooms, assign_lessons30, new_schedule_is_better, \
     preparing_classrooms_to_jmp
+from alocate.Progress import Progress
 from jmetalpy.JMP import JMP
 from swrlAPI.SWRL_API import query_result
 
 
-def overbooking_with_jmp_algorithm(schedule: list, classrooms: list, metrics: list, overbooking_percentage=20,
+def overbooking_with_jmp_algorithm(schedule: list, classrooms: list, metrics: list, progress: Progress, overbooking_percentage=20,
                                    use_jmp=True) -> dict:
     """
     This Algorithm iterates by the schedule and classroom and tries to allocate lessons to classroom if
@@ -22,6 +23,7 @@ def overbooking_with_jmp_algorithm(schedule: list, classrooms: list, metrics: li
     classrooms_list = sorted_classrooms(classrooms)
     lessons30 = {}
     number_of_roomless_lessons = 0
+    progress.set_total_tasks_overbooking_det(len(lessons_list))
     for lesson, c in lessons_list:
         if not c:
             classroom_assigned = False
@@ -39,10 +41,13 @@ def overbooking_with_jmp_algorithm(schedule: list, classrooms: list, metrics: li
                 number_of_roomless_lessons += 1
         else:
             assign_lessons30(lessons30, lesson, c)
+        progress.inc_cur_tasks_overbooking_det()
+
 
     if use_jmp:
         # queryresult = query_result(len(metrics))
         troublesome_lessons30_key_list = sorted(lessons30, key=lambda k: len(lessons30[k]), reverse=True)[:5]
+        progress.set_total_tasks_overbooking_jmp(len(troublesome_lessons30_key_list))
 
         for tbl in troublesome_lessons30_key_list:
             old_metrics = []
@@ -59,6 +64,10 @@ def overbooking_with_jmp_algorithm(schedule: list, classrooms: list, metrics: li
                 if new_schedule_is_better(old_metrics, jmp_metric_results, metrics,
                                           max(len(trouble_l), len(list(trouble_c)))):
                     lessons30[tbl] = new_schedule
+            progress.inc_cur_tasks_overbooking_jmp()
+    else:
+        progress.set_total_tasks_overbooking_jmp(1)
+        progress.inc_cur_tasks_overbooking_jmp()
 
-    print("There are ", number_of_roomless_lessons, " lessons without a classroom.")
+    #print("There are ", number_of_roomless_lessons, " lessons without a classroom.")
     return lessons30
