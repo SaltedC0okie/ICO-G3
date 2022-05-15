@@ -249,8 +249,6 @@ def get_tuplo():
 #e = Experiments()
 #e.test()
 
-cena = 0
-
 def sync_test():
     lock = threading.Lock()
     x = threading.Thread(target=do_thing, args=(lock,))
@@ -271,7 +269,7 @@ def do_thing(lock):
 
 #sync_test()
 
-def test_thing():
+def atest_thing():
     md = Manipulate_Documents()
     classrooms = md.import_classrooms()
     schedule = md.import_schedule_documents("Exemplo_de_horario_primeiro_semestre.csv", False)
@@ -283,3 +281,4 @@ def test_thing():
     print(count)
 
 #test_thing()
+
