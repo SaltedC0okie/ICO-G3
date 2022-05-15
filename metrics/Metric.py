@@ -547,40 +547,83 @@ class ClassroomInconsistency(Metric):
         self.m_type = "gangsWithEverything"  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
         self.value = []
 
-    def calculate(self, schedule: list):
+    def calculate(self, handler: Handler):
         '''
         Receives a Schedule and calculates the ClassroomInconsistency
-        :param schedule:
+        :param handler:
         :return:
         '''
-        schedule.sort(key=lambda x: (x[0].gang, x[0].subject, x[0].week_day, time.strptime(x[0].day, '%m/%d/%Y')))
 
-        previous_lesson = schedule[0][0]
-        previous_classroom = schedule[0][1]
+        dict_string_gang = handler.handle_gangs_everything()[0]
+        dict_lesson_timeslot_classroom = handler.handle_gangs_everything()[1]
 
-        inc = 0
-        possible_inc = 0
-        for lesson, classroom in schedule[1:]:
-            if lesson.gang != previous_lesson.gang:
-                self.value.append((inc, possible_inc))
+        dict_lesson_timeslot_classroom_sorted = dict(
+            sorted(dict_lesson_timeslot_classroom.items(), key=lambda ts, cr: (ts.day, ts.hour,
+                                                                               ts.minute)))
 
-                previous_lesson = lesson
-                previous_classroom = classroom
-                inc = 0
-                possible_inc = 0
-                continue
+        for gang in dict_string_gang.values():
+            previous_lesson = None
+            previous_classroom = None
+            inconsistency = 0
+            possible_inconsistency = 0
 
-            if lesson.subject != previous_lesson.subject or lesson.week_day != previous_lesson.week_day:
-                previous_lesson = lesson
-                previous_classroom = classroom
-                continue
+            for lesson in dict_lesson_timeslot_classroom_sorted.keys():
+                if gang in lesson.gang_list:
+                    actual_timeslot = dict_lesson_timeslot_classroom_sorted[lesson][0]
+                    actual_classroom = dict_lesson_timeslot_classroom_sorted[lesson][1]
+                    if previous_lesson is None:
+                        previous_lesson = lesson
+                        previous_classroom = actual_classroom
+                        continue
 
-            if previous_classroom != classroom:
-                inc += 1
+                    previous_timeslot = dict_lesson_timeslot_classroom_sorted[previous_lesson][0]
+                    previous_classroom = dict_lesson_timeslot_classroom_sorted[previous_lesson][1]
 
-            previous_lesson = lesson
-            previous_classroom = classroom
-            possible_inc += 1
+                    # TODO conseguir o dia da semana dado o dia do ano e comparar sempre com a semana anterior
+                    # possivelmente criar uma lista com as lessons anteriores, encontrar na lista a lesson da semana anterior com
+                    # o mesmo subject e ver se a sala é a mesma
+                    if lesson.subject != previous_lesson or actual_timeslot.day != previous_timeslot.day:
+                        previous_classroom = actual_classroom
+                        previous_lesson = lesson
+                        continue
+
+                    if actual_classroom != previous_classroom:
+                        inconsistency += 1
+
+                    previous_lesson = lesson
+                    previous_classroom = actual_classroom
+                    possible_inconsistency += 1
+
+            self.value.append((inconsistency, possible_inconsistency))
+
+        # schedule.sort(key=lambda x: (x[0].gang, x[0].subject, x[0].week_day, time.strptime(x[0].day, '%m/%d/%Y')))
+        #
+        # previous_lesson = schedule[0][0]
+        # previous_classroom = schedule[0][1]
+        #
+        # inc = 0
+        # possible_inc = 0
+        # for lesson, classroom in schedule[1:]:
+        #     if lesson.gang != previous_lesson.gang:
+        #         self.value.append((inc, possible_inc))
+        #
+        #         previous_lesson = lesson
+        #         previous_classroom = classroom
+        #         inc = 0
+        #         possible_inc = 0
+        #         continue
+        #
+        #     if lesson.subject != previous_lesson.subject or lesson.week_day != previous_lesson.week_day:
+        #         previous_lesson = lesson
+        #         previous_classroom = classroom
+        #         continue
+        #
+        #     if previous_classroom != classroom:
+        #         inc += 1
+        #
+        #     previous_lesson = lesson
+        #     previous_classroom = classroom
+        #     possible_inc += 1
 
     def get_total_metric_value(self):
         return sum([m[0] for m in self.value]) / len(self.value)
