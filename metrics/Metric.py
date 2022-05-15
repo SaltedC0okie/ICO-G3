@@ -9,36 +9,21 @@ from jmetal.core.solution import BinarySolution
 from Timeslot.TimeSlot import TimeSlot
 from alocate import Algorithm_Utils
 
+
 class Handler(ABC):
 
-    def handle_lessons_type(self) -> list: # List[(Lesson, Classroom, TimeSlot)]
+    def handle_lesson_classroom(self) -> list:  # List[(Lesson, Classroom)]
         pass
 
-    def handle_gangs_type(self) -> list: #
+    def handle_gangs_lesson_slot(self) -> list:  # ( dict[String->Gang], dict[Lesson->TimeSlot] )
         pass
 
-def bool_list_to_int(bool_list: List[bool]):
-    num = 0
-    for i in range(len(bool_list)):
-        num += bool_list[-i - 1] * (2 ** i)
-    return num
+    def handle_gangs_everything(self) -> list:  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
+        pass
 
-# slot = bool_list_to_slot(assignment[len(classrooms):], init_day, init_month, init_year)
-def bool_list_to_timeslot(bool_list: List[bool], init_day: int, init_month: int, init_year: int):
-    num = 0
-    for i in range(len(bool_list)):
-        num += bool_list[-i - 1] * (2 ** i)
+    def handle_classroom_slot(self) -> list:  # List[(Classroom, TimeSlot)]
+        pass
 
-    day_inc = int(num / 32)
-    hour_inc = int(num % 32 / 2)
-    half_hour_inc = int(hour_inc - int(hour_inc) + 0.5)
-
-    date_1 = datetime.datetime.strptime(f"{init_month}/{init_day}/{init_year}", "%m/%d/%y")
-    end_date = date_1 + datetime.timedelta(days=day_inc)
-
-    slot = TimeSlot(end_date.day, end_date.month, end_date.year, 8 + hour_inc, 30*half_hour_inc)
-
-    return slot
 
 class Metric(ABC):
     m_type = None
@@ -81,7 +66,7 @@ class RoomlessLessons(Metric):
     def __init__(self, prefered_max=0.2):
         super().__init__("Roomless_lessons", prefered_max)
         self.objective = Problem.MINIMIZE
-        self.m_type = "lessonClassroom"
+        self.m_type = "lessonClassroom"  # List[(Lesson, Classroom)]
         self.value = 0
         self.total = 0
 
@@ -115,7 +100,7 @@ class Overbooking(Metric):
     def __init__(self, prefered_max=0.9):
         super().__init__("Overbooking", prefered_max)
         self.objective = Problem.MINIMIZE
-        self.m_type = "lessonClassroom"
+        self.m_type = "lessonClassroom"  # List[(Lesson, Classroom)]
         self.value = []
 
     def calculate(self, schedule: list):
@@ -145,17 +130,9 @@ class OverbookingICO(MetricICO):
     def __init__(self, prefered_max=0.9):
         super().__init__("Overbooking", prefered_max)
         self.objective = Problem.MINIMIZE
-        self.m_type = "lessonClassroom"
+        self.m_type = "lessonClassroom"  # List[(Lesson, Classroom)]
         self.value = []
 
-    # (self, lessons: list,
-    # classrooms: list,
-    # gangs: dict,
-    # init_day: int,
-    # init_month: int,
-    # init_year: int,
-    # solution: BinarySolution,
-    # handler: Callable):
 
     def calculate(self, handler: Handler):
 
@@ -182,7 +159,7 @@ class Underbooking(Metric):
     def __init__(self, prefered_max=0.95):
         super().__init__("Underbooking", prefered_max)
         self.objective = Problem.MINIMIZE
-        self.m_type = "lessonClassroom"
+        self.m_type = "lessonClassroom"  # List[(Lesson, Classroom)]
         self.prefered_max = prefered_max
         self.weight = 0.25
 
@@ -214,7 +191,7 @@ class BadClassroom(Metric):
     def __init__(self, prefered_max=0.3):
         super().__init__("Bad_classroom", prefered_max)
         self.objective = Problem.MINIMIZE
-        self.m_type = "lessonClassroom"
+        self.m_type = "lessonClassroom"  # List[(Lesson, Classroom)]
         self.value = 0
         self.total = 0
 
@@ -246,7 +223,7 @@ class Gaps(Metric):
     def __init__(self, prefered_max=0.4):
         super().__init__("Gaps", prefered_max)
         self.objective = Problem.MINIMIZE
-        self.m_type = "gangSlot"
+        self.m_type = "gangWithLessonWithSlot"  # ( dict[String->Gang], dict[Lesson->TimeSlot] )
         self.value = []
 
     def calculate(self, schedule: list):
@@ -316,7 +293,7 @@ class RoomMovements(Metric):
     def __init__(self, prefered_max=0.7):
         super().__init__("RoomMovements", prefered_max)
         self.objective = Problem.MINIMIZE
-        self.m_type = "gangs"
+        self.m_type = "gangsWithEverything"  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
         self.value = []
 
     def calculate(self, schedule: list):
@@ -372,7 +349,7 @@ class BuildingMovements(Metric):
     def __init__(self, prefered_max=0.4):
         super().__init__("BuildingMovements", prefered_max)
         self.objective = Problem.MINIMIZE
-        self.m_type = "gangs"
+        self.m_type = "gangsWithEverything"  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
         self.value = []
 
     def calculate(self, schedule: list):
@@ -422,35 +399,35 @@ class BuildingMovements(Metric):
         self.value = []
 
 
-class UsedRooms(Metric):
-
-    def __init__(self, prefered_max=0.4):
-        super().__init__("UsedRooms", prefered_max)
-        self.objective = Problem.MINIMIZE
-        self.m_type = "lessons"
-        self.value = []
-        self.total = 0
-
-    def calculate(self, schedule: list):
-        '''
-        Receives a Schedule and calculates the number of Used Rooms
-        :param schedule:
-        :return:
-        '''
-        for lesson, classroom in schedule:
-            self.total += 1
-            if classroom not in self.value:
-                self.value.append(classroom)
-
-    def get_total_metric_value(self):
-        return len(self.value)
-
-    def get_percentage(self):
-        return len(self.value) / self.total
-
-    def reset_metric(self):
-        self.value = []
-        self.total = 0
+# class UsedRooms(Metric):
+#
+#     def __init__(self, prefered_max=0.4):
+#         super().__init__("UsedRooms", prefered_max)
+#         self.objective = Problem.MINIMIZE
+#         self.m_type = "lessons"
+#         self.value = []
+#         self.total = 0
+#
+#     def calculate(self, schedule: list):
+#         '''
+#         Receives a Schedule and calculates the number of Used Rooms
+#         :param schedule:
+#         :return:
+#         '''
+#         for lesson, classroom in schedule:
+#             self.total += 1
+#             if classroom not in self.value:
+#                 self.value.append(classroom)
+#
+#     def get_total_metric_value(self):
+#         return len(self.value)
+#
+#     def get_percentage(self):
+#         return len(self.value) / self.total
+#
+#     def reset_metric(self):
+#         self.value = []
+#         self.total = 0
 
 
 class ClassroomInconsistency(Metric):
@@ -458,7 +435,7 @@ class ClassroomInconsistency(Metric):
     def __init__(self, prefered_max=0.4):
         super().__init__("ClassroomInconsistency", prefered_max)
         self.objective = Problem.MAXIMIZE
-        self.m_type = "gangs"
+        self.m_type = "gangsWithEverything"  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
         self.value = []
 
     def calculate(self, schedule: list):
@@ -511,7 +488,7 @@ class ClassroomCollisions(Metric):
     def __init__(self, prefered_max=0.4):
         super().__init__("ClassroomCollisions", prefered_max)
         self.objective = Problem.MAXIMIZE
-        self.m_type = "lessons30"
+        self.m_type = "ClassroomSlot"  # List[(Classroom, TimeSlot)]
         self.value = 0
         self.total = 0
 
