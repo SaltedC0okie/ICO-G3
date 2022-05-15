@@ -232,7 +232,6 @@ class BadClassroom(Metric):
         self.total = 0
 
 
-# TODO
 class Gaps(Metric):
 
     def __init__(self, prefered_max=0.4):
@@ -353,12 +352,10 @@ k        :return:
             possible_movements = 0
             for lesson in dict_lesson_timeslot_classroom_sorted.keys():
                 if gang in lesson.gang_list:
-                    actual_classroom = dict_lesson_timeslot_classroom_sorted[lesson][1]
                     actual_timeslot = dict_lesson_timeslot_classroom_sorted[lesson][0]
+                    actual_classroom = dict_lesson_timeslot_classroom_sorted[lesson][1]
                     if previous_lesson is None:
                         previous_lesson = lesson
-                        continue
-                    elif previous_classroom is None:
                         previous_classroom = actual_classroom
                         continue
 
@@ -373,6 +370,9 @@ k        :return:
                         movements += 1
 
                     possible_movements += 1
+                    previous_lesson = lesson
+                    previous_classroom = actual_classroom
+
             self.value.append((movements, possible_movements))
 
         # schedule.sort(
@@ -425,43 +425,77 @@ class BuildingMovements(Metric):
         self.m_type = "gangsWithEverything"  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
         self.value = []
 
-    def calculate(self, schedule: list):
+    def calculate(self, handler: Handler):
         '''
         Calculates number of BuildingMovements that exist in the given gang and stores the value as an attribute
         :param schedule:
         :return:
         '''
 
-        schedule.sort(
-            key=lambda x: (x[0].gang, time.strptime(x[0].day, '%m/%d/%Y'), time.strptime(x[0].start, '%H:%M:%S')))
+        dict_string_gang = handler.handle_gangs_everything()[0]
+        dict_lesson_timeslot_classroom = handler.handle_gangs_everything()[1]
 
-        first_lesson = schedule[0][0]
-        previous_classroom = schedule[0][1]
-        previous_lesson = first_lesson
+        dict_lesson_timeslot_classroom_sorted = dict(
+            sorted(dict_lesson_timeslot_classroom.items(), key=lambda ts, cr: (ts.day, ts.hour,
+                                                                               ts.minute)))
 
-        movements = 0
-        possible_movements = 0
-        for lesson, classroom in schedule[1:]:
+        for gang in dict_string_gang.values():
+            previous_lesson = None
+            previous_classroom = None
+            movements = 0
+            possible_movements = 0
+            for lesson in dict_lesson_timeslot_classroom_sorted.keys():
+                if gang in lesson.gang_list:
+                    actual_timeslot = dict_lesson_timeslot_classroom_sorted[lesson][0]
+                    actual_classroom = dict_lesson_timeslot_classroom_sorted[lesson][1]
+                    if previous_lesson is None:
+                        previous_lesson = lesson
+                        previous_classroom = actual_classroom
+                        continue
 
-            if previous_lesson.gang != lesson.gang:
-                self.value.append((movements, possible_movements))
-                previous_lesson = lesson
-                previous_classroom = classroom
-                movements = 0
-                possible_movements = 0
-                continue
+                    previous_timeslot = dict_lesson_timeslot_classroom_sorted[previous_lesson][0]
+                    previous_classroom = dict_lesson_timeslot_classroom_sorted[previous_lesson][1]
 
-            if lesson.day != previous_lesson.day:
-                previous_lesson = lesson
-                previous_classroom = classroom
-                continue
+                    if actual_timeslot.day != previous_timeslot.day:
+                        previous_classroom = actual_classroom
+                        previous_lesson = lesson
+                        continue
+                    if actual_classroom.building != previous_classroom.building:
+                        movements += 1
 
-            if classroom and previous_classroom and classroom.building != previous_classroom.building:
-                movements += 1
+                    possible_movements += 1
+            self.value.append((movements, possible_movements))
 
-            possible_movements += 1
-            previous_classroom = classroom
-            previous_lesson = lesson
+        # schedule.sort(
+        #     key=lambda x: (x[0].gang, time.strptime(x[0].day, '%m/%d/%Y'), time.strptime(x[0].start, '%H:%M:%S')))
+        #
+        # first_lesson = schedule[0][0]
+        # previous_classroom = schedule[0][1]
+        # previous_lesson = first_lesson
+        #
+        # movements = 0
+        # possible_movements = 0
+        # for lesson, classroom in schedule[1:]:
+        #
+        #     if previous_lesson.gang != lesson.gang:
+        #         self.value.append((movements, possible_movements))
+        #         previous_lesson = lesson
+        #         previous_classroom = classroom
+        #         movements = 0
+        #         possible_movements = 0
+        #         continue
+        #
+        #     if lesson.day != previous_lesson.day:
+        #         previous_lesson = lesson
+        #         previous_classroom = classroom
+        #         continue
+        #
+        #     if classroom and previous_classroom and classroom.building != previous_classroom.building:
+        #         movements += 1
+        #
+        #     possible_movements += 1
+        #     previous_classroom = classroom
+        #     previous_lesson = lesson
 
     def get_total_metric_value(self):
         return sum([m[0] for m in self.value]) / len(self.value)
@@ -504,6 +538,7 @@ class BuildingMovements(Metric):
 #         self.total = 0
 
 
+# TODO
 class ClassroomInconsistency(Metric):
 
     def __init__(self, prefered_max=0.4):
