@@ -133,7 +133,6 @@ class OverbookingICO(MetricICO):
         self.m_type = "lessonClassroom"  # List[(Lesson, Classroom)]
         self.value = []
 
-
     def calculate(self, handler: Handler):
 
         for i, assignment in handler:

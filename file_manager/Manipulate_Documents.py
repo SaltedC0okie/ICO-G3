@@ -28,7 +28,7 @@ class Manipulate_Documents:
 
     # Código Carlos
     def import_lessons_and_gangs(self, file_name: TemporaryUploadedFile, header_order: list,
-                                  dateformat_list: list, encoding='utf-8'):
+                                 dateformat_list: list, encoding='utf-8'):
         """
         Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
         :return: a list with a list Classroom objects and a list of Gang objects
@@ -47,6 +47,27 @@ class Manipulate_Documents:
         file_name.close()
         return lesson_list, gang_list
 
+    def import_lessons_and_gangs2(self, file_name: str, header_order: list,
+                                 dateformat_list: list, encoding='utf-8'):
+        """
+        Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
+        :return: a list with a list Classroom objects and a list of Gang objects
+        """
+        lesson_list = []
+        gang_list = {}
+
+        if encoding not in ["utf-8", "ansi"]:
+            csvreader = csv.reader(open("myfile.txt", "r", encoding="utf-8"))
+        else:
+            csvreader = csv.reader(open("myfile.txt", "r", encoding=encoding))
+        next(csvreader)
+        for row in csvreader:
+            self.read_schedule_row(row, lesson_list, gang_list, header_order, dateformat_list)
+
+        file_name.close()
+        return lesson_list, gang_list
+
+    f = open("myfile.txt", "r", encoding="utf-8")
     # Código Nuno
     # def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, dateformat_list: list,
     #                               encoding='utf-8'):
@@ -139,6 +160,24 @@ class Manipulate_Documents:
         else:
             file_name = open("input_classrooms/Salas.csv", 'r', encoding="utf8")
             csvreader = csv.reader(file_name)
+        header = next(csvreader)
+        for row in csvreader:
+            self.read_classroom_row(row, header, sum_classroom_characteristics)
+        file_name.close()
+        self.calculate_classroom_rarity(sum_classroom_characteristics)
+        return self.classroom_list
+
+    def import_classrooms2(self, file_name: str = "input_classrooms/Salas.csv"):
+        """
+        Imports a csv into a list of Classroom objects uploaded by the user. If the user doesn't input anything, uses the default file
+        Salas.csv
+
+        :return: list of Classroom objects
+        """
+        sum_classroom_characteristics = {}
+        file_name = open(file_name, 'r', encoding="utf8")
+        csvreader = csv.reader(file_name)
+
         header = next(csvreader)
         for row in csvreader:
             self.read_classroom_row(row, header, sum_classroom_characteristics)

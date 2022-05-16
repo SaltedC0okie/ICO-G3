@@ -16,7 +16,7 @@ from alocate.simple_allocation import simple_allocation
 from alocate.weekly_allocation import weekly_allocation
 from file_manager.Manipulate_Documents import *
 
-from metrics.Metric import Gaps, UsedRooms, RoomlessLessons, Overbooking, Underbooking, BadClassroom, RoomMovements, \
+from metrics.Metric import Gaps, RoomlessLessons, Overbooking, Underbooking, BadClassroom, RoomMovements, \
     BuildingMovements, ClassroomInconsistency, ClassroomCollisions
 from django.shortcuts import render
 from lesson.Lesson import *

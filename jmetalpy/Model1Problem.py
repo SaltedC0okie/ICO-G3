@@ -102,8 +102,6 @@ class Model1Handler(Handler):
         return classrooms_slots
 
 
-
-
 class Model1Problem(BinaryProblem):
 
     def __init__(self, lessons: list, classrooms: list, gangs: dict, metrics: list, week: int, year: int):
@@ -133,13 +131,8 @@ class Model1Problem(BinaryProblem):
         for i, metric in enumerate(self.metrics):
             # for j in created_schedule:
             #    metric.calculate(j[0], j[1])
-            metric.calculate(self.lessons,
-                  self.classrooms,
-                  self.gangs,
-                  self.init_day,
-                  self.init_month,
-                  self.init_year,
-                  solution)
+            metric.calculate(Model1Handler(self.lessons, self.classrooms, self.gangs,
+                                           self.init_day, self.init_month, self.init_year, solution))
             solution.objectives[i] = metric.get_percentage()
             metric.reset_metric()
 

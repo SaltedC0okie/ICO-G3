@@ -7,11 +7,11 @@ from jmetal.util.solution import get_non_dominated_solutions
 from jmetal.util.termination_criterion import StoppingByEvaluations
 
 from alocate.Progress import Progress
+from file_manager.Manipulate_Documents import Manipulate_Documents
 from jmetalpy.Model1Problem import Model1Problem
 
 
-def ico_model1_allocation(lessons: list, classrooms: list, gangs: dict, metrics: list, progress: Progress,
-                          week: int, year: int):
+def ico_model1_allocation(lessons: list, classrooms: list, gangs: dict, metrics: list, year: int, progress: Progress = None):
 
     values = {}
     for lesson in lessons:
@@ -47,6 +47,20 @@ def ico_model1_allocation(lessons: list, classrooms: list, gangs: dict, metrics:
     front = get_non_dominated_solutions(solutions)
 
     print(front)
+
+
+if __name__ == '__main__':
+    md = Manipulate_Documents()
+    headers = ["Degree", "Subject", "Shift", "Grade", "Enrolled", "Day_Week", "Starts", "Ends", "Day", "Requested_Char",
+               "Classroom", "Capacity", "Actual_Char"]
+    lessons, gangs = md.import_lessons_and_gangs2("input_documents\\Exemplo_de_horario_primeiro_semestre_ICO.csv",
+                                                  headers, ["MM", "DD", "YYYY"])
+    classrooms = md.import_classrooms2()
+
+    metrics = None  # TODO List of Metric objects
+
+    ico_model1_allocation(lessons, classrooms, gangs, metrics, 2015)
+
 
 
 
