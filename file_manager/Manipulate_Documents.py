@@ -93,10 +93,10 @@ class Manipulate_Documents:
     #     file_name.close()
     #     return schedule
 
-
     """
     if row[5] and row[6] and row[8] and int(row[4]) > 5 and row[9] not in ["Não necessita de sala", "Lab ISTA"]:
     """
+
     def read_schedule_row(self, row, lesson_list, gang_list, header_order, dateformat_list):
         """
         Reads row of schedule file
@@ -120,20 +120,19 @@ class Manipulate_Documents:
                 lesson_gangs.append(gang_list[g])
 
             lesson = Lesson(dateformat_list,
-                            row[header_order[0]], #Curso
-                            row[header_order[1]], #Unidade de executaçao
-                            row[header_order[2]], #Turno
-                            lesson_gangs, # Turma
-                            int(row[header_order[4]]), # Inscritos no turno
-                            row[header_order[5]], #semana
-                            row[header_order[6]], #duraçao
-                            row[header_order[7]]) #caracteristicas
+                            row[header_order[0]],  # Curso
+                            row[header_order[1]],  # Unidade de executaçao
+                            row[header_order[2]],  # Turno
+                            lesson_gangs,  # Turma
+                            int(row[header_order[4]]),  # Inscritos no turno
+                            row[header_order[5]],  # semana
+                            row[header_order[6]],  # duraçao
+                            row[header_order[7]])  # caracteristicas
 
             lesson_list.append(lesson)
 
             for g in lesson_gangs:
                 g.add_lesson(lesson)
-
 
     def import_uploaded_classrooms(self, file_name: TemporaryUploadedFile):
         sum_classroom_characteristics = {}
@@ -145,7 +144,6 @@ class Manipulate_Documents:
             self.read_classroom_row(row, header, sum_classroom_characteristics)
         self.calculate_classroom_rarity(sum_classroom_characteristics)
         return self.classroom_list
-
 
     def import_classrooms(self, file_name: TemporaryUploadedFile):
         """
