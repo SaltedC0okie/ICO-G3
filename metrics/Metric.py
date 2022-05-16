@@ -15,14 +15,38 @@ class Handler(ABC):
     def handle_lesson_classroom(self) -> list:  # List[(Lesson, Classroom)]
         pass
 
-    def handle_gangs_lesson_slot(self) -> list:  # ( dict[String->Gang], dict[Lesson->TimeSlot] )
+    def handle_gangs_lesson_slot(self) -> tuple:  # ( dict[String->Gang], dict[Lesson->TimeSlot] )
         pass
 
-    def handle_gangs_everything(self) -> list:  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
+    def handle_gangs_everything(self) -> tuple:  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
         pass
 
     def handle_classroom_slot(self) -> list:  # List[(Classroom, TimeSlot)]
         pass
+
+
+class TimeSlotAlgHandle(Handler):
+    def __init__(self, list_of_tuple: list):
+        self.lessons, self.classrooms, self.timeslots, self.gangs = zip(*list_of_tuple)
+
+    def handle_lesson_classroom(self) -> list:
+        return list(zip(self.lessons, self.classrooms))
+
+    def handle_gangs_lesson_slot(self) -> tuple:
+        lesson_timeslot_dict = {}
+        for i, slot in enumerate(self.timeslots):
+            lesson_timeslot_dict[self.lessons[i]] = slot
+
+        return self.gangs, lesson_timeslot_dict
+
+    def handle_gangs_everything(self) -> tuple:
+        lesson_timeslot_classroom_dict = {}
+        for i, slot in self.timeslots:
+            lesson_timeslot_classroom_dict[self.lessons[i]] = (slot, self.classrooms[i])
+        return self.gangs, lesson_timeslot_classroom_dict
+
+    def handle_classroom_slot(self) -> list:
+        return list(zip(self.classrooms, self.timeslots))
 
 
 class Metric(ABC):
