@@ -1,6 +1,6 @@
 from jmetal.core.operator import Mutation
 
-from Timeslot import TimeSlot
+from timeslot import TimeSlot
 from jmetalpy import TimeSlotSolution
 
 
@@ -9,7 +9,8 @@ class TimeSlotMutation(Mutation[TimeSlot]):
         super(TimeSlotMutation, self).__init__(probability=probability)
 
     def execute(self, solution: TimeSlotSolution) -> TimeSlotSolution:
-        pass
+        for i in range(solution.number_of_variables):
+                # TODO
 
     def get_name(self):
         return 'TimeSlot mutation'

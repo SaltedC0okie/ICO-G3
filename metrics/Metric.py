@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from jmetal.core.problem import Problem
 from jmetal.core.solution import BinarySolution
 
-from Timeslot.TimeSlot import TimeSlot
+from timeslot.TimeSlot import TimeSlot
 from alocate import Algorithm_Utils
 
 
@@ -25,7 +25,7 @@ class Handler(ABC):
         pass
 
 
-class TimeSlotAlgHandle(Handler):
+class TimeSlotHandler(Handler):
     def __init__(self, list_of_tuple: list):
         self.lessons, self.classrooms, self.timeslots, self.gangs = zip(*list_of_tuple)
 

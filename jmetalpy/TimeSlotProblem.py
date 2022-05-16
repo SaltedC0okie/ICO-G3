@@ -6,13 +6,15 @@ from typing import List
 from jmetal.core.problem import BinaryProblem, Problem
 from jmetal.core.solution import BinarySolution
 
-from jmetalpy import TimeSlotSolution
+from jmetalpy.TimeSlotSolution import TimeSlotSolution
+from metrics.Metric import TimeSlotHandler
+from timeslot.TimeSlot import TimeSlot
 
 
 class TimeSlotProblem(Problem):
 
     def __init__(self, lessons: list, classrooms: list, gangs: dict, metrics: list, week: int, year: int):
-        super(BinaryProblem, self).__init__()
+        super(TimeSlotProblem, self).__init__()
 
         super().__init__()
         self.lessons = lessons
@@ -28,40 +30,47 @@ class TimeSlotProblem(Problem):
         self.init_year = year
 
         self.number_of_objectives = len(self.metrics)
-        self.number_of_variables = len(self.lessons)
-        self.number_of_constraints = len(self.lessons)
+        self.number_of_variables = max(len(self.lessons), len(self.classrooms))
 
-        self.obj_directions = [m.objective for m in metrics]  # metrics[0].objective
-        # self.obj_labels = ['Lower_half']
+        self.obj_directions = [m.objective for m in metrics]
 
     def evaluate(self, solution: TimeSlotSolution):
+        handler = TimeSlotHandler(solution.variables)
 
         for i, metric in enumerate(self.metrics):
-            # for j in created_schedule:
-            #    metric.calculate(j[0], j[1])
-            metric.calculate(self.lessons,
-                             self.classrooms,
-                             self.gangs,
-                             self.init_day,
-                             self.init_month,
-                             self.init_year,
-                             solution)
+            metric.calculate(handler)
             solution.objectives[i] = metric.get_percentage()
             metric.reset_metric()
 
         return solution
 
-    def __evaluate_constraints(self, solution: BinarySolution) -> None:
-        pass  # TODO
-
     def create_solution(self) -> BinarySolution:
-        new_solution = BinarySolution(self.number_of_variables,
-                                      self.number_of_objectives)  # No clue about lower and upper
+        new_solution = TimeSlotSolution(self.lessons,
+                                        self.classrooms,
+                                        self.number_of_variables,
+                                        self.number_of_objectives)
+
         new_solution.variables = []
+        if len(self.lessons) < len(self.classrooms):
+            for i in range(len(self.lessons)):
+                minute = 0
+                if random.random() < 0.5:
+                    minute=30
+                timeslot = TimeSlot(minute, hour, self.init_day + random.randint(0, 4), self.init_month, self.init_year)
+                new_solution.variables.append((self.lessons[i], self.classrooms[random.randint(0, len(self.classrooms))], timeslot))
+
+        else:
+            pass
+
+        lessons_index = random.shuffle(range(len(self.lessons)))
         for i in range(self.number_of_variables):
+            # TODO
+
+
+
             bitset = [True if random.random() < 0.5 else False for b in range(len(self.classrooms))]
             bitset.extend([True if random.random() < 0.5 else False for b in range(self.num_slots)])
-            new_solution.variables.append(bitset)
+            new_solution.variables.append()
         return new_solution
 
     def get_name(self) -> str:
