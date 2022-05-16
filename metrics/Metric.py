@@ -538,12 +538,11 @@ class BuildingMovements(Metric):
 #         self.total = 0
 
 
-# TODO
 class ClassroomInconsistency(Metric):
 
     def __init__(self, prefered_max=0.4):
         super().__init__("ClassroomInconsistency", prefered_max)
-        self.objective = Problem.MAXIMIZE
+        self.objective = Problem.MINIMIZE
         self.m_type = "gangsWithEverything"  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
         self.value = []
 
@@ -562,39 +561,18 @@ class ClassroomInconsistency(Metric):
                                                                                ts.minute)))
 
         for gang in dict_string_gang.values():
-            previous_lesson = None
-            previous_classroom = None
-            inconsistency = 0
-            possible_inconsistency = 0
-
+            dict_subject = {}
             for lesson in dict_lesson_timeslot_classroom_sorted.keys():
                 if gang in lesson.gang_list:
-                    actual_timeslot = dict_lesson_timeslot_classroom_sorted[lesson][0]
-                    actual_classroom = dict_lesson_timeslot_classroom_sorted[lesson][1]
-                    if previous_lesson is None:
-                        previous_lesson = lesson
-                        previous_classroom = actual_classroom
-                        continue
+                    classroom = dict_lesson_timeslot_classroom_sorted[lesson][1]
+                    if not dict_subject[lesson.subject]:
+                        dict_subject[lesson.subject] = (set(classroom), 1)
+                    else:
+                        dict_subject[lesson.subject][0].add(classroom)
+                        dict_subject[lesson.subject][1] = dict_subject[lesson.subject][1] + 1
 
-                    previous_timeslot = dict_lesson_timeslot_classroom_sorted[previous_lesson][0]
-                    previous_classroom = dict_lesson_timeslot_classroom_sorted[previous_lesson][1]
-
-                    # TODO conseguir o dia da semana dado o dia do ano e comparar sempre com a semana anterior
-                    # possivelmente criar uma lista com as lessons anteriores, encontrar na lista a lesson da semana anterior com
-                    # o mesmo subject e ver se a sala é a mesma
-                    if lesson.subject != previous_lesson or actual_timeslot.day != previous_timeslot.day:
-                        previous_classroom = actual_classroom
-                        previous_lesson = lesson
-                        continue
-
-                    if actual_classroom != previous_classroom:
-                        inconsistency += 1
-
-                    previous_lesson = lesson
-                    previous_classroom = actual_classroom
-                    possible_inconsistency += 1
-
-            self.value.append((inconsistency, possible_inconsistency))
+            for c, pc in dict_subject.values():
+                self.value.append((len(c), pc))
 
         # schedule.sort(key=lambda x: (x[0].gang, x[0].subject, x[0].week_day, time.strptime(x[0].day, '%m/%d/%Y')))
         #
@@ -635,6 +613,7 @@ class ClassroomInconsistency(Metric):
         self.value = []
 
 
+# TODO
 class ClassroomCollisions(Metric):
 
     def __init__(self, prefered_max=0.4):
@@ -677,3 +656,201 @@ class ClassroomCollisions(Metric):
     def reset_metric(self):
         self.value = 0
         self.total = 0
+
+
+class GangLessonVolume(Metric):
+
+    def __init__(self, prefered_max=0.4):
+        super().__init__("GangLessonVolume", prefered_max)
+        self.objective = Problem.MINIMIZE
+        self.m_type = "gangWithLessonWithSlot"  # ( dict[String->Gang], dict[Lesson->TimeSlot] )
+        self.value = []
+
+    def calculate(self, handler: Handler):
+        '''
+        Receives a Schedule and calculates the ClassroomInconsistency
+        :param handler:
+        :return:
+        '''
+
+        dict_string_gang = handler.handle_gangs_everything()[0]
+        dict_lesson_timeslot = handler.handle_gangs_lesson_slot()[1]
+
+        dict_lesson_timeslot_sorted = dict(
+            sorted(dict_lesson_timeslot.items(), key=lambda ts: (ts.day, ts.hour, ts.minute)))
+
+        for gang in dict_string_gang.values():
+            previous_lesson = None
+            duration_list = []
+            for lesson in dict_lesson_timeslot_sorted.keys():
+                if gang in lesson.gang_list:
+                    actual_timeslot = dict_lesson_timeslot_sorted[lesson]
+
+                    if previous_lesson is None:
+                        duration_list.append(lesson.duration)
+                        previous_lesson = lesson
+                        continue
+
+                    previous_timeslot = dict_lesson_timeslot_sorted[previous_lesson]
+
+                    if actual_timeslot.day != previous_timeslot.day:
+                        self.value.append(self.number_of_hours(duration_list))
+                        duration_list = [lesson.duration]
+                        previous_lesson = lesson
+                        continue
+                    duration_list.append(lesson.duration)
+
+    def number_of_hours(self, duration_list: List[str]):
+        total_time = 0
+        for duration in duration_list:
+            duration_str = duration.split(":")
+            duration = datetime.timedelta(hours=int(duration_str[0]), minutes=int(duration_str[1]))
+            total_time += duration
+
+        return total_time
+
+    def get_total_metric_value(self):
+        return sum([m for m in self.value]) / len(self.value)
+
+    # TODO
+    def get_percentage(self):
+        return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
+
+    def reset_metric(self):
+        self.value = []
+
+
+class GangLessonDistribution(Metric):
+
+    def __init__(self, prefered_max=0.4):
+        super().__init__("GangLessonDistribution", prefered_max)
+        self.objective = Problem.MINIMIZE
+        self.m_type = "gangWithLessonWithSlot"  # ( dict[String->Gang], dict[Lesson->TimeSlot] )
+        self.value = []
+
+    def calculate(self, handler: Handler):
+        '''
+        Receives a Schedule and calculates the ClassroomInconsistency
+        :param handler:
+        :return:
+        '''
+
+        dict_string_gang = handler.handle_gangs_everything()[0]
+        dict_lesson_timeslot = handler.handle_gangs_lesson_slot()[1]
+
+        dict_lesson_timeslot_sorted = dict(
+            sorted(dict_lesson_timeslot.items(), key=lambda ts: (ts.day, ts.hour, ts.minute)))
+
+        for gang in dict_string_gang.values():
+            previous_lesson = None
+            time_slot_list = []
+            for lesson in dict_lesson_timeslot_sorted.keys():
+                if gang in lesson.gang_list:
+                    actual_timeslot = dict_lesson_timeslot_sorted[lesson]
+                    time_slot_list.append(actual_timeslot)
+                    if previous_lesson is None:
+                        previous_lesson = lesson
+                        continue
+
+                    previous_timeslot = dict_lesson_timeslot_sorted[previous_lesson]
+
+                    if actual_timeslot.day != previous_timeslot.day:
+                        previous_lesson = lesson
+                        continue
+            self.value.append(self.time_slot_interval_distribution(time_slot_list))
+
+    def time_slot_interval_distribution(self, time_slot_list: List[TimeSlot]):
+
+        lesson_distribution_list = []
+
+        dict_distribution = {}
+
+        morning_start = datetime.timedelta(hours=8, minutes=0)
+        morning_end = datetime.timedelta(hours=12, minutes=0)
+
+        afternoon_start = datetime.timedelta(hours=12, minutes=0)
+        afternoon_end = datetime.timedelta(hours=18, minutes=0)
+
+        evening_start = datetime.timedelta(hours=18, minutes=0)
+        evening_end = datetime.timedelta(hours=22, minutes=0)
+
+        for ts in time_slot_list:
+            time_slot = datetime.timedelta(hours=ts.hour, minutes=ts.minute)
+            if morning_start < time_slot < morning_end:
+                lesson_distribution_list.append("MORNING")
+                pass
+            elif afternoon_start < time_slot < afternoon_end:
+                lesson_distribution_list.append("AFTERNOON")
+                pass
+            elif evening_start < time_slot < evening_end:
+                lesson_distribution_list.append("EVENING")
+                pass
+
+        dict_distribution["MORNING"] = lesson_distribution_list.count("MORNING")
+        dict_distribution["AFTERNOON"] = lesson_distribution_list.count("AFTERNOON")
+        dict_distribution["EVENING"] = lesson_distribution_list.count("EVENING")
+        total_distribution = lesson_distribution_list.count("MORNING") + lesson_distribution_list.count(
+            "AFTERNOON") + lesson_distribution_list.count("EVENING")
+        # Check this
+        dict_distribution = sorted(dict_distribution.items(), key=lambda item: item[1])
+        dict_distribution = dict([(k, v) for v, k in dict_distribution])
+        dict_distribution.popitem()
+        bad_distribution = sum(dict_distribution.values())
+
+        return bad_distribution / total_distribution
+
+    # TODO WILL BE REMOVED LATER
+    def get_total_metric_value(self):
+        return sum([m for m in self.value]) / len(self.value)
+
+    def get_percentage(self):
+        return sum([m for m in self.value]) / len(self.value)
+
+    def reset_metric(self):
+        self.value = []
+
+
+class LessonInconsistency(Metric):
+
+    def __init__(self, prefered_max=0.4):
+        super().__init__("LessonInconsistency", prefered_max)
+        self.objective = Problem.MINIMIZE
+        self.m_type = "gangWithLessonWithSlot"  # ( dict[String->Gang], dict[Lesson->TimeSlot] )
+        self.value = []
+
+    def calculate(self, handler: Handler):
+        '''
+        Receives a Schedule and calculates the ClassroomInconsistency
+        :param handler:
+        :return:
+        '''
+
+        dict_string_gang = handler.handle_gangs_everything()[0]
+        dict_lesson_timeslot = handler.handle_gangs_lesson_slot()[1]
+
+        dict_lesson_timeslot_sorted = dict(
+            sorted(dict_lesson_timeslot.items(), key=lambda ts: (ts.day, ts.hour, ts.minute)))
+
+        for gang in dict_string_gang.values():
+            dict_subject = {}
+            for lesson in dict_lesson_timeslot_sorted.keys():
+                if gang in lesson.gang_list:
+                    actual_timeslot = dict_lesson_timeslot_sorted[lesson]
+
+                    if not dict_subject[lesson.subject]:
+                        dict_subject[lesson.subject] = (set(actual_timeslot), 1)
+                    else:
+                        dict_subject[lesson.subject][0].add(actual_timeslot)
+                        dict_subject[lesson.subject][1] = dict_subject[lesson.subject][1] + 1
+
+            for ts, pts in dict_subject.values():
+                self.value.append((len(ts), pts))
+
+    def get_total_metric_value(self):
+        return sum([m[0] for m in self.value]) / len(self.value)
+
+    def get_percentage(self):
+        return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
+
+    def reset_metric(self):
+        self.value = []
