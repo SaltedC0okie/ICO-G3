@@ -10,6 +10,7 @@ class TimeSlotSolution(Solution[TimeSlot]):
             self,
             lessons: list,
             classrooms: list,
+            init_day: int,
             number_of_variables: int,
             number_of_objectives: int,
             number_of_constraints: int = 0
@@ -18,11 +19,12 @@ class TimeSlotSolution(Solution[TimeSlot]):
 
         self.lessons = lessons
         self.classrooms = classrooms
-
+        self.init_day = init_day
 
     def __copy__(self):
         new_solution = TimeSlotSolution(
-            self.number_of_variables, self.number_of_objectives, self.number_of_constraints
+            self.lessons, self.classrooms, self.init_day, self.number_of_variables, self.number_of_objectives,
+            self.number_of_constraints
         )
         new_solution.objectives = self.objectives[:]
         new_solution.variables = self.variables[:]

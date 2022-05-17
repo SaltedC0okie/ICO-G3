@@ -84,6 +84,16 @@ class MetricICO(ABC):
     def reset_metric(self):
         pass
 
+class NullMetric(Metric):
+    def __init__(self, prefered_max=0.2):
+        super().__init__("Nothing", prefered_max)
+        self.objective = Problem.MINIMIZE
+
+    def calculate(self, input):
+        pass
+
+    def get_percentage(self):
+        return 0
 
 class RoomlessLessons(Metric):
 

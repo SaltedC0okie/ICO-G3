@@ -35,7 +35,7 @@ class TimeSlotProblem(Problem):
         self.obj_directions = [m.objective for m in metrics]
 
     def evaluate(self, solution: TimeSlotSolution):
-        handler = TimeSlotHandler(solution.variables)
+        handler = TimeSlotHandler(list(zip(zip(*solution.variables), self.gangs)))
 
         for i, metric in enumerate(self.metrics):
             metric.calculate(handler)
@@ -44,33 +44,22 @@ class TimeSlotProblem(Problem):
 
         return solution
 
-    def create_solution(self) -> BinarySolution:
+    def create_solution(self) -> TimeSlotSolution:
         new_solution = TimeSlotSolution(self.lessons,
                                         self.classrooms,
                                         self.number_of_variables,
                                         self.number_of_objectives)
 
         new_solution.variables = []
-        if len(self.lessons) < len(self.classrooms):
-            for i in range(len(self.lessons)):
-                minute = 0
-                if random.random() < 0.5:
-                    minute=30
-                timeslot = TimeSlot(minute, hour, self.init_day + random.randint(0, 4), self.init_month, self.init_year)
-                new_solution.variables.append((self.lessons[i], self.classrooms[random.randint(0, len(self.classrooms))], timeslot))
+        for i in range(len(self.lessons)):
+            minute = 0
+            if random.random() < 0.5:
+                minute = 30
+            timeslot = TimeSlot(minute, random.randint(8, 24), self.init_day + random.randint(0, 4), self.init_month,
+                                self.init_year)
+            new_solution.variables.append(
+                (self.lessons[i], self.classrooms[random.randint(0, len(self.classrooms))], timeslot))
 
-        else:
-            pass
-
-        lessons_index = random.shuffle(range(len(self.lessons)))
-        for i in range(self.number_of_variables):
-            # TODO
-
-
-
-            bitset = [True if random.random() < 0.5 else False for b in range(len(self.classrooms))]
-            bitset.extend([True if random.random() < 0.5 else False for b in range(self.num_slots)])
-            new_solution.variables.append()
         return new_solution
 
     def get_name(self) -> str:
