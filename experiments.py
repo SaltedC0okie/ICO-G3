@@ -286,31 +286,4 @@ def atest_thing():
 
 #test_thing()
 
-def bool_list_to_int(bool_list: List[bool]) -> int:
-    num = 0
-    for i in range(len(bool_list)):
-        num += bool_list[-i - 1] * (2 ** i)
-    return num
 
-
-def bool_list_to_timeslot(bool_list: List[bool]):
-    num = bool_list_to_int(bool_list)
-
-    week = int(num / 160)
-    weekday = int(num / 32) - week * 5
-    hour_inc = int(num % 32 / 2)
-    half_hour_inc = int(num % 32 / 2 - hour_inc + 0.5)
-
-    # date_1 = datetime.datetime.strptime(f"{init_month}/{init_day}/{init_year}", "%m/%d/%Y")
-    # end_date = date_1 + datetime.timedelta(days=day_inc)
-
-    slot = TimeSlot(week, weekday, 8 + hour_inc, 30 * half_hour_inc)
-
-    return slot
-
-#print(bool_list_to_int([True, True, True, True, True]))
-
-
-print(bool_list_to_timeslot([True, True, False, True, False, False, False, True, True]))
-
-print(5*32)
