@@ -432,7 +432,7 @@ class Manipulate_Documents:
             g.add_lesson(lesson)
 
     # TODO
-    def export_schedule_dict_ts_lc(self, dict_ts_lc: dict, file_name: str) -> None:
+    def export_schedule_dict_ts_lc(self, dict_ts_lc: dict, file_name: str) -> list:
         """
         Export to a csv file the list of Lesson objects
         :param dict_ts_lc: Dict[TimeSLot -> List[(Lesson, Classroom)]]
@@ -477,6 +477,8 @@ class Manipulate_Documents:
                         date_lesson_start.weekday + ";" + date_lesson_start.strftime("%H:%M:%S") + ";" +
                         date_lesson_end.strftime("%H:%M:%S") + ";" + date_lesson_start.strftime("%m/%d/%Y") + ";" +
                         lesson.requested_characteristics + ";;;")
+
+        return rows
 
     # TODO
     def calculate_day(self, week: int, weekday: int, hour: int, minute: int, starting_day: datetime) -> datetime:
