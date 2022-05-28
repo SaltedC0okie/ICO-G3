@@ -286,4 +286,7 @@ def atest_thing():
 
 #test_thing()
 
+a = {1}
+
+print(a)
 

@@ -2,6 +2,7 @@ import math
 import time
 
 from jmetal.algorithm.multiobjective import MOEAD, NSGAII
+from jmetal.core.solution import BinarySolution
 from jmetal.operator import SPXCrossover, BitFlipMutation
 from jmetal.util.aggregative_function import Tschebycheff, WeightedSum
 from jmetal.util.evaluator import SparkEvaluator
@@ -111,7 +112,7 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
                     mutation=BitFlipMutation(probability=1.0 / problem.number_of_variables),  # (probability=1.0 / problem.number_of_variables),
                     crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
                     termination_criterion=StoppingByEvaluations(max_evaluations=10),
-                    population_evaluator=SparkEvaluator(processes=2)
+                    population_evaluator=SparkEvaluator(processes=12)
                 )
 
     progress_bar = ProgressBarObserver(max=10)
@@ -163,15 +164,15 @@ if __name__ == '__main__':
 
     s_headers = ["Course", "Subject", "Shift", "Class", "Enrolled", "Week", "Duration",
                  "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
-    order = [0,1,2,3,4,5,6,7]
+    order = [0, 1, 2, 3, 4, 5, 6, 7]
 
-    lessons2, gangs2 = md.import_lessons_and_gangs2("E:/E_Documents/Git/ICO-G3/input_documents/Exemplo_de_horario_primeiro_semestre_ICO.csv",
-                                                  order, ["MM", "DD", "YYYY"])
+    lessons2, gangs2 = md.import_lessons_and_gangs2("../input_documents/Exemplo_de_horario_primeiro_semestre_ICO.csv",
+                                                    order, ["MM", "DD", "YYYY"])
     classrooms2 = md.import_classrooms2()
 
-    #metrics2 = [RoomlessLessons(), Overbooking(), BadClassroom(), Gaps(), RoomMovements(), ClassroomInconsistency(),
-    #           ClassroomCollisions(), GangLessonVolume(), GangLessonDistribution(), LessonInconsistency()]
-    metrics2 = [Overbooking()]
+    metrics2 = [RoomlessLessons(), Overbooking(), BadClassroom(), Gaps(), RoomMovements(), ClassroomInconsistency(),
+                ClassroomCollisions(), GangLessonVolume(), LessonInconsistency()]
+    # metrics2 = [Overbooking()]
     ico_model1_allocation_whole_schedule(lessons2, classrooms2, gangs2, metrics2, 2015)
 
 

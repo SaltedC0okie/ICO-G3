@@ -232,6 +232,10 @@ class Gaps(Metric):
 
         dict_string_gang, dict_lesson_timeslot = handler.handle_gangs_lesson_slot()
 
+        filtered = {k: v for k, v in dict_lesson_timeslot.items() if v is not None}
+        dict_lesson_timeslot.clear()
+        dict_lesson_timeslot.update(filtered)
+
         dict_lesson_timeslot_sorted = dict(sorted(dict_lesson_timeslot.items(),
                                                   key=lambda item: (item[1].week, item[1].weekday,
                                                                     item[1].hour, item[1].minute)))
@@ -297,6 +301,10 @@ class RoomMovements(Metric):
         """
 
         dict_string_gang, dict_lesson_timeslot_classroom = handler.handle_gangs_everything()
+        filtered = {k: v for k, v in dict_lesson_timeslot_classroom.items()
+                    if v[0] is not None and v[1] is not None}
+        dict_lesson_timeslot_classroom.clear()
+        dict_lesson_timeslot_classroom.update(filtered)
 
         dict_lesson_timeslot_classroom_sorted = dict(
             sorted(dict_lesson_timeslot_classroom.items(), key=lambda item: (item[1][0].week, item[1][0].weekday,
@@ -322,7 +330,7 @@ class RoomMovements(Metric):
                     previous_timeslot = dict_lesson_timeslot_classroom_sorted[previous_lesson][0]
                     previous_classroom = dict_lesson_timeslot_classroom_sorted[previous_lesson][1]
 
-                    if actual_timeslot.day != previous_timeslot.day:
+                    if actual_timeslot.weekday != previous_timeslot.weekday:
                         previous_lesson = lesson
                         continue
                     if actual_classroom != previous_classroom:
@@ -359,6 +367,10 @@ class BuildingMovements(Metric):
         """
 
         dict_string_gang, dict_lesson_timeslot_classroom = handler.handle_gangs_everything()
+        filtered = {k: v for k, v in dict_lesson_timeslot_classroom.items()
+                    if v[0] is not None and v[1] is not None}
+        dict_lesson_timeslot_classroom.clear()
+        dict_lesson_timeslot_classroom.update(filtered)
 
         dict_lesson_timeslot_classroom_sorted = dict(
             sorted(dict_lesson_timeslot_classroom.items(), key=lambda item: (item[1][0].week, item[1][0].weekday,
@@ -379,7 +391,7 @@ class BuildingMovements(Metric):
                     previous_timeslot = dict_lesson_timeslot_classroom_sorted[previous_lesson][0]
                     previous_classroom = dict_lesson_timeslot_classroom_sorted[previous_lesson][1]
 
-                    if actual_timeslot.day != previous_timeslot.day:
+                    if actual_timeslot.weekday != previous_timeslot.weekday:
                         previous_lesson = lesson
                         continue
                     if actual_classroom.building != previous_classroom.building:
@@ -448,6 +460,10 @@ class ClassroomInconsistency(Metric):
         """
 
         dict_string_gang, dict_lesson_timeslot_classroom = handler.handle_gangs_everything()
+        filtered = {k: v for k, v in dict_lesson_timeslot_classroom.items()
+                    if v[0] is not None and v[1] is not None}
+        dict_lesson_timeslot_classroom.clear()
+        dict_lesson_timeslot_classroom.update(filtered)
 
         dict_lesson_timeslot_classroom_sorted = dict(
             sorted(dict_lesson_timeslot_classroom.items(), key=lambda item: (item[1][0].week, item[1][0].weekday,
@@ -458,8 +474,8 @@ class ClassroomInconsistency(Metric):
             for lesson in dict_lesson_timeslot_classroom_sorted.keys():
                 if gang in lesson.gang_list:
                     classroom = dict_lesson_timeslot_classroom_sorted[lesson][1]
-                    if not dict_subject[lesson.subject]:
-                        dict_subject[lesson.subject] = (set(classroom), 1)
+                    if lesson.subject not in dict_subject.keys():
+                        dict_subject[lesson.subject] = [{classroom}, 1]
                     else:
                         dict_subject[lesson.subject][0].add(classroom)
                         dict_subject[lesson.subject][1] = dict_subject[lesson.subject][1] + 1
@@ -543,9 +559,13 @@ class GangLessonVolume(Metric):
 
         dict_string_gang, dict_lesson_timeslot = handler.handle_gangs_lesson_slot()
 
-        dict_lesson_timeslot_sorted = dict(
-            sorted(dict_lesson_timeslot.items(), key=lambda item: (item[1].week, item[1].weekday,
-                                                                   item[1].hour, item[1].minute)))
+        filtered = {k: v for k, v in dict_lesson_timeslot.items() if v is not None}
+        dict_lesson_timeslot.clear()
+        dict_lesson_timeslot.update(filtered)
+
+        dict_lesson_timeslot_sorted = dict(sorted(dict_lesson_timeslot.items(),
+                                                  key=lambda item: (item[1].week, item[1].weekday,
+                                                                    item[1].hour, item[1].minute)))
 
         for gang in dict_string_gang.values():
             previous_lesson = None
@@ -578,8 +598,8 @@ class GangLessonVolume(Metric):
         total_time = 0
         for duration in duration_list:
             duration_str = duration.split(":")
-            duration = datetime.timedelta(hours=int(duration_str[0]), minutes=int(duration_str[1]))
-            total_time += duration
+            #duration = datetime.timedelta(hours=int(duration_str[0]), minutes=int(duration_str[1]))
+            total_time += int(duration_str[0]) + int(duration_str[1])/60
 
         return total_time
 
@@ -611,9 +631,13 @@ class GangLessonDistribution(Metric):
 
         dict_string_gang, dict_lesson_timeslot = handler.handle_gangs_lesson_slot()
 
-        dict_lesson_timeslot_sorted = dict(
-            sorted(dict_lesson_timeslot.items(), key=lambda item: (item[1].week, item[1].weekday,
-                                                                   item[1].hour, item[1].minute)))
+        filtered = {k: v for k, v in dict_lesson_timeslot.items() if v is not None}
+        dict_lesson_timeslot.clear()
+        dict_lesson_timeslot.update(filtered)
+
+        dict_lesson_timeslot_sorted = dict(sorted(dict_lesson_timeslot.items(),
+                                                  key=lambda item: (item[1].week, item[1].weekday,
+                                                                    item[1].hour, item[1].minute)))
 
         for gang in dict_string_gang.values():
             previous_lesson = None
@@ -628,7 +652,7 @@ class GangLessonDistribution(Metric):
 
                     previous_timeslot = dict_lesson_timeslot_sorted[previous_lesson]
 
-                    if actual_timeslot.day != previous_timeslot.day:
+                    if actual_timeslot.weekday != previous_timeslot.weekday:
                         previous_lesson = lesson
                         continue
 
@@ -702,9 +726,13 @@ class LessonInconsistency(Metric):
 
         dict_string_gang, dict_lesson_timeslot = handler.handle_gangs_lesson_slot()
 
-        dict_lesson_timeslot_sorted = dict(
-            sorted(dict_lesson_timeslot.items(), key=lambda item: (item[1].week, item[1].weekday,
-                                                                   item[1].hour, item[1].minute)))
+        filtered = {k: v for k, v in dict_lesson_timeslot.items() if v is not None}
+        dict_lesson_timeslot.clear()
+        dict_lesson_timeslot.update(filtered)
+
+        dict_lesson_timeslot_sorted = dict(sorted(dict_lesson_timeslot.items(),
+                                                  key=lambda item: (item[1].week, item[1].weekday,
+                                                                    item[1].hour, item[1].minute)))
 
         for gang in dict_string_gang.values():
             dict_subject = {}
@@ -712,8 +740,8 @@ class LessonInconsistency(Metric):
                 if gang in lesson.gang_list:
                     actual_timeslot = dict_lesson_timeslot_sorted[lesson]
 
-                    if not dict_subject[lesson.subject]:
-                        dict_subject[lesson.subject] = (set(actual_timeslot), 1)
+                    if lesson.subject not in dict_subject.keys():
+                        dict_subject[lesson.subject] = [{actual_timeslot}, 1]
                     else:
                         dict_subject[lesson.subject][0].add(actual_timeslot)
                         dict_subject[lesson.subject][1] = dict_subject[lesson.subject][1] + 1
