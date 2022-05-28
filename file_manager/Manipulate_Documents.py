@@ -48,7 +48,7 @@ class Manipulate_Documents:
         return lesson_list, gang_list
 
     def import_lessons_and_gangs2(self, file_name: str, header_order: list,
-                                 dateformat_list: list, encoding='utf-8'):
+                                  dateformat_list: list, encoding='utf-8'):
         """
         Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
         :return: a list with a list Classroom objects and a list of Gang objects
@@ -57,9 +57,9 @@ class Manipulate_Documents:
         gang_list = {}
 
         if encoding not in ["utf-8", "ansi"]:
-            csvreader = csv.reader(open("myfile.txt", "r", encoding="utf-8"))
+            csvreader = csv.reader(open(file_name, "r", encoding="utf-8"))
         else:
-            csvreader = csv.reader(open("myfile.txt", "r", encoding=encoding))
+            csvreader = csv.reader(open(file_name, "r", encoding=encoding))
         next(csvreader)
         for row in csvreader:
             self.read_schedule_row(row, lesson_list, gang_list, header_order, dateformat_list)
@@ -67,7 +67,6 @@ class Manipulate_Documents:
         file_name.close()
         return lesson_list, gang_list
 
-    f = open("myfile.txt", "r", encoding="utf-8")
     # Código Nuno
     # def import_schedule_documents(self, file_name: TemporaryUploadedFile, use_classrooms: bool, dateformat_list: list,
     #                               encoding='utf-8'):
