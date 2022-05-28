@@ -5,3 +5,7 @@ class TimeSlot:
         self.year = year
         self.hour = hour
         self.minute = minute
+
+    def __str__(self):
+        minute = str(self.minute) if self.minute >= 10 else f"0{self.minute}"
+        return f"Day {self.day}, month {self.month}, year {self.year}, {self.hour}h{minute}"

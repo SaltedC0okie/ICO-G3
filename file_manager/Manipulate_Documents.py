@@ -57,14 +57,13 @@ class Manipulate_Documents:
         gang_list = {}
 
         if encoding not in ["utf-8", "ansi"]:
-            csvreader = csv.reader(open(file_name, "r", encoding="utf-8"))
+            csvreader = csv.reader(open(file_name, "r", encoding="utf-8"), delimiter=';')
         else:
-            csvreader = csv.reader(open(file_name, "r", encoding=encoding))
+            csvreader = csv.reader(open(file_name, "r", encoding=encoding), delimiter=';')
         next(csvreader)
-        for row in csvreader:
+        for i, row in enumerate(csvreader):
             self.read_schedule_row(row, lesson_list, gang_list, header_order, dateformat_list)
 
-        file_name.close()
         return lesson_list, gang_list
 
     # Código Nuno
@@ -164,7 +163,7 @@ class Manipulate_Documents:
         self.calculate_classroom_rarity(sum_classroom_characteristics)
         return self.classroom_list
 
-    def import_classrooms2(self, file_name: str = "input_classrooms/Salas.csv"):
+    def import_classrooms2(self, file_name: str = "../input_classrooms/Salas.csv"):
         """
         Imports a csv into a list of Classroom objects uploaded by the user. If the user doesn't input anything, uses the default file
         Salas.csv
@@ -355,3 +354,82 @@ class Manipulate_Documents:
             string += str(e) + ", "
         string = string[:-2]
         return string
+
+
+
+
+
+
+
+
+    def import_schedule_documents_old(self, file_name: str, use_classrooms: bool, encoding: str = "utf-8"):
+        """
+        Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
+        :return: a list with a list Classroom objects and a list of Gang objects
+        """
+        classroom_dict = {}
+        for classroom in self.classroom_list:
+            classroom_dict[classroom.name] = classroom
+        schedule = []
+
+        csvreader = csv.reader(open(file_name, "r", encoding=encoding))
+        next(csvreader)
+        for row in csvreader:
+            self.read_schedule_row(row, use_classrooms, classroom_dict, schedule)
+
+        file_name.close()
+        return schedule
+
+    def read_schedule_row_old(self, row, use_classrooms, classroom_dict, schedule):
+        '''
+        Reads row of schedule file
+        :param row:
+        :param use_classrooms:
+        :param classroom_dict:
+        :param schedule:
+        :return:
+        '''
+        if row[5] and row[6] and row[8]:
+            lesson = Lesson(row[0], row[1], row[2], row[3],
+                            int(row[4]), row[5], row[6], row[7], row[8], row[9])
+
+            if not use_classrooms or not row[10] or row[10] not in classroom_dict.keys():
+                schedule.append((lesson, None))
+            else:
+                classroom_dict[row[10]].set_unavailable(lesson.generate_time_blocks())
+                schedule.append((lesson, classroom_dict[row[10]]))
+
+    def read_schedule_row_testing(self, row, lesson_list, gang_list, header_order, dateformat_list):
+        """
+        Reads row of schedule file
+        :param lesson_list:
+        :param gang_list:
+        :param header_order:
+        :param dateformat_list:
+        :param row:
+        :param use_classrooms:
+        :return:
+        """
+        if len(row) < 8:
+            return
+
+        lesson_gangs = []
+        for g in row[header_order[3]].split(","):
+            if g not in gang_list:
+                gang_list[g] = Gang(g)
+            lesson_gangs.append(gang_list[g])
+
+        lesson = Lesson(dateformat_list,
+                        row[header_order[0]],  # Curso
+                        row[header_order[1]],  # Unidade de executaçao
+                        row[header_order[2]],  # Turno
+                        lesson_gangs,  # Turma
+                        int(row[header_order[4]]),  # Inscritos no turno
+                        row[header_order[5]],  # semana
+                        row[header_order[6]],  # duraçao
+                        row[header_order[7]])  # caracteristicas
+
+        lesson_list.append(lesson)
+
+        for g in lesson_gangs:
+            g.add_lesson(lesson)

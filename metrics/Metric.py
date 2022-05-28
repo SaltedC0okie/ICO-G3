@@ -249,11 +249,10 @@ class Gaps(Metric):
         :return:
         '''
 
-        dict_string_gang = handler.handle_gangs_lesson_slot()[0]
-        dict_lesson_timeslot = handler.handle_gangs_lesson_slot()[1]
+        dict_string_gang, dict_lesson_timeslot = handler.handle_gangs_lesson_slot()
 
-        dict_lesson_timeslot_sorted = dict(sorted(dict_lesson_timeslot.items(), key=lambda item: (item.day, item.hour,
-                                                                                                  item.minute)))
+        dict_lesson_timeslot_sorted = dict(sorted(dict_lesson_timeslot.items(),
+                                                  key=lambda item: (item[1].day, item[1].hour, item[1].minute)))
 
         for gang in dict_string_gang.values():
             previous_lesson = None
@@ -314,12 +313,11 @@ class Gaps(Metric):
 
         return (t1 - t2) / t3
 
-    def get_total_metric_value(self):
-        return sum([e for e in self.value]) / len(self.value)
+    #def get_total_metric_value(self):
+    #    return sum([e for e in self.value]) / len(self.value)
 
-    # TODO
     def get_percentage(self):
-        return sum([e[0] for e in self.value]) / sum([e[1] for e in self.value])
+        return sum([e for e in self.value]) / len(self.value)
 
     def reset_metric(self):
         self.value = []
@@ -337,7 +335,7 @@ class RoomMovements(Metric):
         '''
         Calculates number of RoomMovements that exist in the given gang and stores the value as an attribute
         :param handler:
-k        :return:
+        :return:
         '''
 
         dict_string_gang = handler.handle_gangs_everything()[0]

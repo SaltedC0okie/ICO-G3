@@ -3,18 +3,22 @@ import time
 
 import csv
 
+from Timeslot.TimeSlot import TimeSlot
 from alocate import Algorithm_Utils
 from alocate.Progress import Progress
 from alocate.simple_allocation import simple_allocation
 from alocate.weekly_allocation import weekly_allocation
 from metrics import Metric
-from metrics.Metric import Gaps, UsedRooms, RoomlessLessons, Overbooking, Underbooking, BadClassroom, RoomMovements, \
-    BuildingMovements, ClassroomInconsistency
+#from metrics.Metric import Gaps, UsedRooms, RoomlessLessons, Overbooking, Underbooking, BadClassroom, RoomMovements, \
+#    BuildingMovements, ClassroomInconsistency
 from classroom.Classroom import Classroom
 from file_manager.Manipulate_Documents import Manipulate_Documents
 from lesson.Lesson import Lesson
 import random
 import threading
+from typing import List
+import datetime
+
 
 
 class Experiments:
@@ -281,4 +285,31 @@ def atest_thing():
     print(count)
 
 #test_thing()
+
+def bool_list_to_int(bool_list: List[bool]) -> int:
+    num = 0
+    for i in range(len(bool_list)):
+        num += bool_list[-i - 1] * (2 ** i)
+    return num
+
+
+def bool_list_to_timeslot(bool_list: List[bool]):
+    num = bool_list_to_int(bool_list)
+
+    week = int(num / (5 * 32))
+    weekday = int(num / 32) - week * 5
+    hour_inc = int(num % 32 / 2)
+    half_hour_inc = int(num % 32 / 2 - hour_inc + 0.5)
+
+    # date_1 = datetime.datetime.strptime(f"{init_month}/{init_day}/{init_year}", "%m/%d/%Y")
+    # end_date = date_1 + datetime.timedelta(days=day_inc)
+
+    slot = TimeSlot(week, weekday, 8 + hour_inc, 30 * half_hour_inc)
+
+    return slot
+
+#print(bool_list_to_int([True, True, True, True, True]))
+
+
+print(bool_list_to_timeslot([True, True, True, True, True]))
 
