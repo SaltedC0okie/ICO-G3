@@ -1,13 +1,8 @@
 import datetime
-import time
-from typing import List, Callable
-
+from typing import List
 from abc import ABC, abstractmethod
 from jmetal.core.problem import Problem
-from jmetal.core.solution import BinarySolution
-
 from Timeslot.TimeSlot import TimeSlot
-from alocate import Algorithm_Utils
 
 
 class Handler(ABC):
@@ -89,7 +84,8 @@ class RoomlessLessons(Metric):
         return self.value
 
     def get_percentage(self):
-        if self.value == 0: return 0
+        if self.value == 0:
+            return 0
         return self.value / self.total
 
     def reset_metric(self):
@@ -139,15 +135,11 @@ class Overbooking(Metric):
 #
 #     def calculate(self, handler: Handler):
 #
-#         for i, assignment in handler:
-#             classroom = classrooms[bool_list_to_int(assignment[:len(classrooms)])]
-#             lesson = lessons[i]
-#             if classroom and lesson.number_of_enrolled_students > classroom.normal_capacity:
-#                 # self.value.append((lesson.number_of_enrolled_students - classroom.normal_capacity) / classroom.normal_capacity)
-#                 self.value.append(classroom.normal_capacity / lesson.number_of_enrolled_students)
-#             # self.value.append(lesson.number_of_enrolled_students - classroom.normal_capacity)
-#             else:
-#                 self.value.append(0)
+# for i, assignment in handler: classroom = classrooms[bool_list_to_int(assignment[:len(classrooms)])] lesson =
+# lessons[i] if classroom and lesson.number_of_enrolled_students > classroom.normal_capacity: # self.value.append((
+# lesson.number_of_enrolled_students - classroom.normal_capacity) / classroom.normal_capacity) self.value.append(
+# classroom.normal_capacity / lesson.number_of_enrolled_students) # self.value.append(
+# lesson.number_of_enrolled_students - classroom.normal_capacity) else: self.value.append(0)
 #
 #     def get_percentage(self):
 #         if len(self.value) == 0: return 0
@@ -232,11 +224,11 @@ class Gaps(Metric):
         self.value = []
 
     def calculate(self, handler: Handler):
-        '''
+        """
         Calculates number of gaps that exist in the given gang and stores the value as an attribute
         :param handler:
         :return:
-        '''
+        """
 
         dict_string_gang, dict_lesson_timeslot = handler.handle_gangs_lesson_slot()
 
@@ -251,12 +243,12 @@ class Gaps(Metric):
                     if previous_lesson is None:
                         previous_lesson = lesson
                         continue
-                    if dict_lesson_timeslot_sorted[lesson].weekday is None or dict_lesson_timeslot_sorted[
-                        previous_lesson].weekday is None:
+                    if dict_lesson_timeslot_sorted[lesson].weekday is None or \
+                            dict_lesson_timeslot_sorted[previous_lesson].weekday is None:
                         self.value = -1
                         return
-                    if dict_lesson_timeslot_sorted[lesson].weekday != dict_lesson_timeslot_sorted[
-                        previous_lesson].weekday:
+                    if dict_lesson_timeslot_sorted[lesson].weekday != \
+                            dict_lesson_timeslot_sorted[previous_lesson].weekday:
                         self.value.append(self.blocks_in_interval(dict_lesson_timeslot_sorted[previous_lesson],
                                                                   dict_lesson_timeslot_sorted[lesson],
                                                                   previous_lesson.duration))
@@ -449,11 +441,11 @@ class ClassroomInconsistency(Metric):
         self.value = []
 
     def calculate(self, handler: Handler):
-        '''
+        """
         Receives a Schedule and calculates the ClassroomInconsistency
         :param handler:
         :return:
-        '''
+        """
 
         dict_string_gang, dict_lesson_timeslot_classroom = handler.handle_gangs_everything()
 
@@ -496,9 +488,9 @@ class ClassroomCollisions(Metric):
 
     def calculate(self, handler: Handler):
         """
-        Receives a Schedule and calculates the number of times a classroom is assigned more than once in a half hour block
-        :param handler:
-        :return:
+        Receives a Schedule and calculates the number of times a classroom is assigned more than once in a half hour
+        block :param
+        handler: :return:
         """
         classroom_timeslot_list = handler.handle_classroom_slot()
 
