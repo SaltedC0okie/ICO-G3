@@ -1,5 +1,6 @@
 import csv
 import os
+from datetime import datetime, timedelta
 
 from Gang.Gang import Gang
 from classroom.Classroom import Classroom
@@ -10,7 +11,7 @@ import io
 
 class Manipulate_Documents:
 
-    def __init__(self, input_path="input_documents", output_path="output_documents",
+    def __init__(self, semester_starting_day, input_path="input_documents", output_path="output_documents",
                  input_classrooms="input_classrooms"):
         """
         Basic init for Manipulate_Documents
@@ -23,7 +24,8 @@ class Manipulate_Documents:
         self.input_path = input_path
         self.output_path = output_path
         self.input_classrooms = input_classrooms
-
+        # TODO
+        self.semester_starting_day = semester_starting_day
         self.classroom_list = []
 
     # Código Carlos
@@ -355,6 +357,7 @@ class Manipulate_Documents:
         string = string[:-2]
         return string
 
+<<<<<<< Updated upstream
 
 
 
@@ -433,3 +436,61 @@ class Manipulate_Documents:
 
         for g in lesson_gangs:
             g.add_lesson(lesson)
+=======
+    # TODO
+    def export_schedule_dict_ts_lc(self, dict_ts_lc: dict, file_name: str) -> None:
+        """
+        Export to a csv file the list of Lesson objects
+        :param dict_ts_lc: Dict[TimeSLot -> List[(Lesson, Classroom)]]
+        :param file_name: name of the new file
+        :return:
+        # TS: Week, Weekday, Hour, Minute
+        """
+
+        rows = []
+        header = "Curso,Unidade de execução,Turno,Turma,Inscritos no turno,Dia da Semana,Início," \
+                 "Fim,Dia,Características da sala pedida para a aula,Sala de aula,Lotação,Características reais da sala"
+        rows.append(header)
+        # calculate the day with a function that receives the week, day of the week, starting day of the semester
+        semester_starting_day_list = self.semester_starting_day.split("/")
+        starting_day = datetime.strptime(f"{semester_starting_day_list[0]}/{semester_starting_day_list[1]}"
+                                         f"/{semester_starting_day_list[2]}", "%m/%d/%Y")
+
+        for ts in dict_ts_lc.keys():
+            week = ts.week
+            weekday = ts.weekday
+            hour = ts.hour
+            minute = ts.minute
+            for lesson, classroom in dict_ts_lc.values():
+                if classroom:
+                    date_lesson_start = self.calculate_day(week, weekday, hour, minute, starting_day)
+                    duration = lesson.duration.split(":")
+                    duration_delta = timedelta(hours=int(duration[0]), minutes=int(duration[1]), seconds=int(duration[2]))
+                    date_lesson_end = date_lesson_start + duration_delta
+                    rows.append(lesson.course + ";" + lesson.subject + ";" + lesson.shift + ";" + lesson.gang_list + ";" +
+                                date_lesson_start.weekday + ";" + date_lesson_start.strftime("%H:%M:%S") + ";" +
+                                date_lesson_end.strftime("%H:%M:%S") + ";" + date_lesson_start.strftime("%m/%d/%Y") + ";" +
+                                lesson.requested_characteristics + ";" + classroom.name + ";" + classroom.normal_capacity + ";" +
+                                self.list_to_comma_sep_string(classroom.characteristics))
+                else:
+                    date_lesson_start = self.calculate_day(week, weekday, hour, minute, starting_day)
+                    duration = lesson.duration.split(":")
+                    duration_delta = timedelta(hours=int(duration[0]), minutes=int(duration[1]),
+                                               seconds=int(duration[2]))
+                    date_lesson_end = date_lesson_start + duration_delta
+                    rows.append(
+                        lesson.course + ";" + lesson.subject + ";" + lesson.shift + ";" + lesson.gang_list + ";" +
+                        date_lesson_start.weekday + ";" + date_lesson_start.strftime("%H:%M:%S") + ";" +
+                        date_lesson_end.strftime("%H:%M:%S") + ";" + date_lesson_start.strftime("%m/%d/%Y") + ";" +
+                        lesson.requested_characteristics + ";;;")
+
+    # TODO
+    def calculate_day(self, week: int, weekday: int, hour: int, minute: int, starting_day: datetime) -> datetime:
+        # starting day must have the format -> mm/dd/yyyy
+        # weekday must be int (do this when importing)
+        week_to_sum = timedelta(weeks=week)
+        actual_date = week_to_sum + starting_day
+        actual_date.weekday = weekday
+        actual_date = actual_date.replace(hour=hour, minute=minute)
+        return actual_date
+>>>>>>> Stashed changes
