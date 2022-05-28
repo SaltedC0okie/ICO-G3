@@ -131,8 +131,14 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
     print(front)
 
     one_solution = front[int(len(front)/2)]
+    print(one_solution.objectives)
+    for solution in front:
+        print("")
+        print("Objectives:")
+        for i in range(len(solution.objectives)):
+            print(f"{metrics[i].name}- {solution.objectives[i]}")
 
-    return make_lessons30(one_solution, lessons, classrooms), one_solution
+    #return make_lessons30(one_solution, lessons, classrooms), one_solution
 
 
 def make_lessons30(solution1: BinarySolution, lessons1, classrooms1):
