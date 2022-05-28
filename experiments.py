@@ -296,7 +296,7 @@ def bool_list_to_int(bool_list: List[bool]) -> int:
 def bool_list_to_timeslot(bool_list: List[bool]):
     num = bool_list_to_int(bool_list)
 
-    week = int(num / (5 * 32))
+    week = int(num / 160)
     weekday = int(num / 32) - week * 5
     hour_inc = int(num % 32 / 2)
     half_hour_inc = int(num % 32 / 2 - hour_inc + 0.5)
@@ -311,5 +311,6 @@ def bool_list_to_timeslot(bool_list: List[bool]):
 #print(bool_list_to_int([True, True, True, True, True]))
 
 
-print(bool_list_to_timeslot([True, True, True, True, True]))
+print(bool_list_to_timeslot([True, True, False, True, False, False, False, True, True]))
 
+print(5*32)

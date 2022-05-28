@@ -357,12 +357,6 @@ class Manipulate_Documents:
         string = string[:-2]
         return string
 
-<<<<<<< Updated upstream
-
-
-
-
-
 
 
     def import_schedule_documents_old(self, file_name: str, use_classrooms: bool, encoding: str = "utf-8"):
@@ -436,7 +430,7 @@ class Manipulate_Documents:
 
         for g in lesson_gangs:
             g.add_lesson(lesson)
-=======
+
     # TODO
     def export_schedule_dict_ts_lc(self, dict_ts_lc: dict, file_name: str) -> None:
         """
@@ -493,4 +487,4 @@ class Manipulate_Documents:
         actual_date.weekday = weekday
         actual_date = actual_date.replace(hour=hour, minute=minute)
         return actual_date
->>>>>>> Stashed changes
+

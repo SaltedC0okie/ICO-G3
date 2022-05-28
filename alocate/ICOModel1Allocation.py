@@ -69,8 +69,7 @@ def ico_model1_allocation(lessons: list, classrooms: list, gangs: dict, metrics:
     num_slots = len(busiest_week)*35*5
     one_solution = front[int(len(front)/2)]
     # TODO o init_day, month e year não vão ser precisos
-    m1h = Model1Handler(lessons, classrooms, gangs, num_slots,
-                  init_day, self.init_month, self.init_year, one_solution)
+    m1h = Model1Handler(lessons, classrooms, gangs, num_slots, one_solution)
 
     for week_num in range(len(busiest_week)):
         pass

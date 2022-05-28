@@ -37,7 +37,7 @@ def bool_list_to_timeslot(bool_list: List[bool], init_day: str, init_month: str,
 def bool_list_to_timeslot(bool_list: List[bool]):
     num = bool_list_to_int(bool_list)
 
-    week = int(num / (5*32))
+    week = int(num / 160)  # 5*32
     weekday = int(num/32) - week*5
     hour_inc = int(num % 32 / 2)
     half_hour_inc = int(num % 32 / 2 - hour_inc + 0.5)
@@ -52,14 +52,10 @@ def bool_list_to_timeslot(bool_list: List[bool]):
 
 class Model1Handler(Handler):
 
-    def __init__(self, lessons: list, classrooms: list, gangs: dict, num_slots: int, init_day: int, init_month: int,
-                 init_year: int, solution: BinarySolution):
+    def __init__(self, lessons: list, classrooms: list, gangs: dict, num_slots: int, solution: BinarySolution):
         self.lessons = lessons
         self.classrooms = classrooms
         self.gangs = gangs
-        self.init_day = init_day
-        self.init_month = init_month
-        self.init_year = init_year
         self.solution = solution
         self.num_bits_classroom = int(math.log(len(self.classrooms), 2) + 1)
         self.num_slots = num_slots
@@ -87,10 +83,7 @@ class Model1Handler(Handler):
         for i, assignment in enumerate(self.solution.variables):
             lesson = self.lessons[i]
             if self.num_slots <= bool_list_to_int(assignment[self.num_bits_classroom:]):
-                timeslot = bool_list_to_timeslot(assignment[self.num_bits_classroom:],
-                                                 self.init_day,
-                                                 self.init_month,
-                                                 self.init_year)
+                timeslot = bool_list_to_timeslot(assignment[self.num_bits_classroom:])
             else:
                 timeslot = None
 
@@ -104,10 +97,7 @@ class Model1Handler(Handler):
         for i, assignment in enumerate(self.solution.variables):
             lesson = self.lessons[i]
             if self.num_slots <= bool_list_to_int(assignment[self.num_bits_classroom:]):
-                timeslot = bool_list_to_timeslot(assignment[self.num_bits_classroom:],
-                                                 self.init_day,
-                                                 self.init_month,
-                                                 self.init_year)
+                timeslot = bool_list_to_timeslot(assignment[self.num_bits_classroom:])
             else:
                 timeslot = None
 
@@ -130,10 +120,7 @@ class Model1Handler(Handler):
                 classroom = None
 
             if self.num_slots <= bool_list_to_int(assignment[self.num_bits_classroom:]):
-                timeslot = bool_list_to_timeslot(assignment[self.num_bits_classroom:],
-                                                 self.init_day,
-                                                 self.init_month,
-                                                 self.init_year)
+                timeslot = bool_list_to_timeslot(assignment[self.num_bits_classroom:])
             else:
                 timeslot = None
 
