@@ -11,6 +11,7 @@ from django.http import HttpResponse, FileResponse
 import time
 from alocate import Algorithm_Utils
 from alocate.ICOModel1Allocation import ico_model1_allocation_whole_schedule
+from alocate.Model1Handler import Model1Handler
 from alocate.Progress import Progress
 from alocate.overbooking_with_jmp_algorithm import overbooking_with_jmp_algorithm
 from alocate.simple_allocation import simple_allocation
@@ -81,6 +82,22 @@ def results(request):
 
         lesson_list, gang_dict = mp.import_lessons_and_gangs(mySchedule, order, dateformat_list, encoding)
         metrics_chosen = request.session['metrics']
+
+
+
+        values = {}
+        for lesson in lesson_list:
+            if lesson.week in values.keys():
+                values[lesson.week] += 1
+            else:
+                values[lesson.week] = 1
+
+        busiest_week = max(values, key=values.get)
+        busiest_week_lessons = list(filter(lambda l: l.week == busiest_week, lesson_list))
+
+        lesson_list = busiest_week_lessons  # TODO TEMPORÁRIO
+        print("HEY I'M HERE   : ", len(lesson_list))
+
 
         metrics = []
         metrics_jmp_compatible = []
@@ -200,6 +217,16 @@ def results(request):
         # table columns
 
         solutions = ico_model1_allocation_whole_schedule(lesson_list, classrooms, gang_dict, metrics)
+
+        # for solution in solutions:
+        #     handle_everything = Model1Handler(lessons, self.classrooms, self.gangs, self.num_slots,
+        #                                       solution).handle_gangs_everything()
+        #     for i, metric in enumerate(self.metrics):
+        #         # for j in created_schedule:
+        #         #    metric.calculate(j[0], j[1])
+        #         metric.calculate(handle_everything)
+        #         solution.objectives[i] = metric.get_total_metric_value()
+        #         metric.reset_metric()
 
         headers = {"Metric": "Metrics"}
         results_metrics = {"Metric": []}

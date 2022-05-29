@@ -1,10 +1,11 @@
 import math
 import time
 
-from jmetal.algorithm.multiobjective import MOEAD, NSGAII
+from jmetal.algorithm.multiobjective.moead import MOEAD
+from jmetal.algorithm.multiobjective import NSGAII
 from jmetal.algorithm.multiobjective.nsgaiii import NSGAIII, UniformReferenceDirectionFactory
 from jmetal.core.solution import BinarySolution
-from jmetal.operator import SPXCrossover, BitFlipMutation
+from jmetal.operator import SPXCrossover, BitFlipMutation, DifferentialEvolutionCrossover, NullCrossover
 from jmetal.util.aggregative_function import Tschebycheff, WeightedSum
 from jmetal.util.evaluator import SparkEvaluator
 from jmetal.util.observer import ProgressBarObserver
@@ -82,17 +83,7 @@ def ico_model1_allocation(lessons: list, classrooms: list, gangs: dict, metrics:
 
 
 def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs: dict, metrics: list, progress: Progress = None):
-    values = {}
-    for lesson in lessons:
-        if lesson.week in values.keys():
-            values[lesson.week] += 1
-        else:
-            values[lesson.week] = 1
 
-    busiest_week = max(values, key=values.get)
-    busiest_week_lessons = list(filter(lambda l: l.week == busiest_week, lessons))
-
-    lessons = busiest_week_lessons # TODO TEMPORÁRIO
 
     #values = set()
     #for lesson in lessons:
@@ -104,30 +95,47 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
 
     problem = Model1Problem(lessons, classrooms, gangs, num_slots, metrics)
 
-    # NSGAIII(
-    #     problem=problem,
-    #     population_size=100,
-    #     mutation=PermutationSwapMutation(probability=0.5),  # (probability=1.0 / problem.number_of_variables),
-    #     crossover=PMXCrossover(probability=0.5),
-    #     reference_directions=UniformReferenceDirectionFactory(problem.number_of_objectives, n_points=99),
-    #     termination_criterion=StoppingByEvaluations(max_evaluations=1000)
-    # )
+    # problem: Problem,
+    # population_size: int,
+    # mutation: Mutation,
+    # crossover: DifferentialEvolutionCrossover,
+    # aggregative_function: AggregativeFunction,
+    # neighbourhood_selection_probability: float,
+    # max_number_of_replaced_solutions: int,
+    # neighbor_size: int,
+    # weight_files_path: str,
+    # termination_criterion: TerminationCriterion = store.default_termination_criteria,
+    # population_generator: Generator = store.default_generator,
+    # population_evaluator: Evaluator = store.default_evaluator
+    algorithm = MOEAD(
+        problem=problem,
+        population_size=300,
+        crossover=SPXCrossover(probability=0.8),
+        mutation=ICOMutation(probability=1 / len(lessons),
+                             classrooms_length=len(classrooms),
+                             num_bits_classroom=num_bits_classroom,
+                             num_slots=num_slots),
+        aggregative_function=Tschebycheff(dimension=problem.number_of_objectives),
+        neighbor_size=20,
+        neighbourhood_selection_probability=0.9,
+        max_number_of_replaced_solutions=2,
+        weight_files_path='resources/MOEAD_weights',
+        termination_criterion=StoppingByEvaluations(max_evaluations=100)
+    )
 
-    algorithm = MOEAD(problem=problem,
-                      population_size=300,
-                      crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
-                      mutation=ICOMutation(probability=1/problem.number_of_variables,
-                                           classrooms_length=len(classrooms),
-                                           num_bits_classroom=num_bits_classroom,
-                                           num_slots=num_slots),
-                      aggregative_function=WeightedSum(dimension=problem.number_of_objectives),
-                      neighbor_size=20,
-                      neighbourhood_selection_probability=0.9,
-                      max_number_of_replaced_solutions=2,
-                      weight_files_path='resources/MOEAD_weights',
-                      termination_criterion=StoppingByEvaluations(max=100)
-                      )
-
+    # algorithm = NSGAII(
+    #                 problem=problem,
+    #                 population_size=100,
+    #                 offspring_population_size=100,
+    #                 #mutation=BitFlipMutation(0.1),
+    #                 mutation=ICOMutation(probability=1/len(lessons),
+    #                                      classrooms_length=len(classrooms),
+    #                                      num_bits_classroom=num_bits_classroom,
+    #                                      num_slots=num_slots),
+    #                 crossover=SPXCrossover(probability=0.8),
+    #                 termination_criterion=StoppingByEvaluations(max_evaluations=200),
+    #                 population_evaluator=SparkEvaluator(processes=12)
+    #             )
     # algorithm = NSGAIII(
     #                 problem=problem,
     #                 population_size=100,
@@ -212,20 +220,4 @@ if __name__ == '__main__':
     # ClassroomInconsistency(), ClassroomCollisions(), GangLessonVolume(), GangLessonDistribution(),
     # LessonInconsistency()
     ico_model1_allocation_whole_schedule(lessons2, classrooms2, gangs2, metrics2, 2015)
-
-
-
-
-
-#algorithm = MOEAD(problem=problem,
-    #                 population_size=300,
-    #                 crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
-    #                 mutation=BitFlipMutation(probability=1.0 / problem.number_of_variables),
-    #                 aggregative_function=WeightedSum(),
-    #                 neighbor_size=20,
-    #                 neighbourhood_selection_probability=0.9,
-    #                 max_number_of_replaced_solutions=2,
-    #                 weight_files_path='resources/MOEAD_weights',
-    #                 termination_criterion=StoppingByEvaluations(50)
-    #                 )
 

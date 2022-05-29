@@ -36,7 +36,7 @@ class Model1Problem(BinaryProblem):
         self.num_bits_classroom = int(math.log(len(self.classrooms), 2) + 1)
         self.num_bits_slots = int(math.log(self.num_slots, 2) + 1)
 
-        self.obj_directions = [self.MAXIMIZE for i in range(len(metrics))]
+        self.obj_directions = [self.MINIMIZE for i in range(len(metrics))]
         self.obj_labels = ['Sum', 'No. of Objects']
 
 
