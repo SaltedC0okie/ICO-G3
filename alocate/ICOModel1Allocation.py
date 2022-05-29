@@ -179,10 +179,11 @@ if __name__ == '__main__':
                                                     order, ["MM", "DD", "YYYY"])
     classrooms2 = md.import_classrooms2()
 
-    metrics2 = [GangLessonVolume()]
-    # RoomlessLessons(), Overbooking(), BadClassroom(), Gaps(), RoomMovements(), ClassroomInconsistency(),
-    #                 ClassroomCollisions(), GangLessonVolume(), LessonInconsistency()
-    # metrics2 = [Overbooking()]
+    metrics2 = [LessonInconsistency()]
+
+    # RoomlessLessons(), Overbooking(), Underbooking(), BadClassroom(), Gaps(), RoomMovements(), BuildingMovements(),
+    # ClassroomInconsistency(), ClassroomCollisions(), GangLessonVolume(), GangLessonDistribution(),
+    # LessonInconsistency()
     ico_model1_allocation_whole_schedule(lessons2, classrooms2, gangs2, metrics2, 2015)
 
 
