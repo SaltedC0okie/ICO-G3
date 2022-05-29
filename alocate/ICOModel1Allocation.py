@@ -111,7 +111,7 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
                     offspring_population_size=100,
                     mutation=BitFlipMutation(probability=1.0 / problem.number_of_variables),  # (probability=1.0 / problem.number_of_variables),
                     crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
-                    termination_criterion=StoppingByEvaluations(max_evaluations=10),
+                    termination_criterion=StoppingByEvaluations(max_evaluations=300),
                     population_evaluator=SparkEvaluator(processes=12)
                 )
 
@@ -127,8 +127,6 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
 
     solutions = algorithm.get_result()
     front = get_non_dominated_solutions(solutions)
-
-    print(front)
 
     one_solution = front[int(len(front)/2)]
     print(one_solution.objectives)

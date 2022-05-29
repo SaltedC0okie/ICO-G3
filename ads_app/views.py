@@ -115,13 +115,6 @@ def results(request):
         else:
             classrooms = mp.import_classrooms()
 
-        solutions = ico_model1_allocation_whole_schedule(lesson_list, classrooms, gang_dict, metrics)
-
-
-
-
-        #results_metrics = {"Metric": [], "Algorithm - Simple": [], "Algorithm - Weekly": [],
-        #                   "Algorithm - Overbooking": []}
 
         # count = Algorithm_Utils.check_for_collisions(a_jmp)
         #
@@ -178,7 +171,48 @@ def results(request):
         #     if i != len_metrics - 1:
         #         progress.inc_cur_tasks_metrics()
         #
-        iterator = len(results_metrics["Algorithm - Simple"])
+        # iterator = len(results_metrics["Algorithm - Simple"])
+        # i = 0
+        # final_dict = []
+        # while i < iterator:
+        #     tmp_dict = {}
+        #     for key, values in results_metrics.items():
+        #         # print(tmp_dict[key], "inside for", values[i])
+        #         try:
+        #             tmp_dict[key] = values[i]
+        #         except Exception:
+        #             print("didn't insert the value")
+        #
+        #     final_dict.append(tmp_dict)
+        #     i += 1
+        # results_metrics = final_dict
+        #
+        # # a_simple represents the schedule from the simple algorithm
+        # # schedule_nuno represents the schedule from the overbooking algorithm
+        # global schedule_simple
+        # global schedule_overbooking
+        # global schedule_weekly
+        # schedule_simple = a_simple
+        # schedule_overbooking = schedule_nuno
+        # schedule_weekly = schedule_andre
+
+
+        # table columns
+
+        solutions = ico_model1_allocation_whole_schedule(lesson_list, classrooms, gang_dict, metrics)
+
+        headers = {"Metric": "Metrics"}
+        results_metrics = {"Metric": []}
+        for metric in metrics:
+            results_metrics["Metric"].append(metric.name)
+
+        for i in range(len(solutions)):
+            headers["solution" + str(i)] = "solution" + str(i)
+            results_metrics["solution" + str(i)] = []
+            for metric_value in solutions[i].objectives:
+                results_metrics["solution" + str(i)].append(str(round(metric_value * 100, 2)) + "%")
+
+        iterator = len(metrics)
         i = 0
         final_dict = []
         while i < iterator:
@@ -193,30 +227,15 @@ def results(request):
             final_dict.append(tmp_dict)
             i += 1
         results_metrics = final_dict
-        #
-        # # a_simple represents the schedule from the simple algorithm
-        # # schedule_nuno represents the schedule from the overbooking algorithm
-        # global schedule_simple
-        # global schedule_overbooking
-        # global schedule_weekly
-        # schedule_simple = a_simple
-        # schedule_overbooking = schedule_nuno
-        # schedule_weekly = schedule_andre
-
-
-        # table columns
-        headers = {"Metric": "Metrics"}
-        for i in range(len(solutions)):
-            headers["solution" + str(i)] = "solution" + str(i)
-        #headers = {"Metric": "Metrics", "Algorithm - Simple": "Algorithm - Simple",
-        #           "Algorithm - Weekly": "Algorith - Weekly", "Algorithm - Overbooking": "Algorithm - Overbooking"}
 
         # content of evaluation table
         context = [{"Metric": "1", "Algorithm - 1": "97.5%", "Algorithm - 2": "50%"},
                    {"Metric": "2", "Algorithm - 1": "10.5%", "Algorithm - 2": "99.7%"}]
         context = json.dumps(context)
-        results_metrics = json.dumps(results_metrics)
+        #results_metrics = json.dumps(results_metrics)
         # content of all algorithms to show on page, append to render
+        print(f"headers: {headers}")
+        print(f"results_metrics: {results_metrics}")
         return render(request, 'results.html',
                       {"context": context, "table_headers": headers, "results_metrics": results_metrics})
 

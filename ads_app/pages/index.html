@@ -4,7 +4,7 @@
 		<link href="https://unpkg.com/tabulator-tables@5.0.7/dist/css/tabulator.min.css" rel="stylesheet">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
-		<title>ADS Schedule Optimus Prime</title>
+		<title>ICO Schedule Optimus Prime</title>
 
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,7 +21,7 @@
 		<div class="sidenav">
 		   {% block sidebar %}
 		   <ul class="sidebar-nav">
-			  <li class="web-title">ADS P3.14</li>
+			  <li class="web-title">ICO schedule generator</li>
 			 <li><a href="{% url 'index' %}">Home</a></li>
 			 <li><a href="{% url 'results' %}">Results</a></li>
 		   </ul>
@@ -30,9 +30,8 @@
 
 		<form class="content" action="data" method="POST" enctype="multipart/form-data">{% csrf_token %}
 			<br>
-			<p>Gibe Swarting  day pwety pwease</p>
+			<p>Please input the starting day of the semestre</p>
 			<input type="text" class="starting_day" id="Semester_starting_day" name="Semester_starting_day" required>    <label class="starting_day" for="Semester_starting_day">Semester Starting Day</label> <br>
-
 
 			<br>
 			<p>Select Metrics to evaluate the algorithm- To select multiple metrics, press CTRL + Left Click</p>

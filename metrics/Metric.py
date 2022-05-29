@@ -2,7 +2,7 @@ import datetime
 from typing import List
 from abc import ABC, abstractmethod
 from jmetal.core.problem import Problem
-from timeslot.TimeSlot import TimeSlot
+from Timeslot.TimeSlot import TimeSlot
 
 
 class Handler(ABC):
