@@ -20,19 +20,6 @@ from jmetalpy.Model1Problem import Model1Problem, Model1Handler
 from metrics.Metric import *
 
 
-def filter_drenz(gang_lessons: list):
-    values = {}
-    for lesson in gang_lessons:
-        if lesson.week in values.keys():
-            values[lesson.week] += 1
-        else:
-            values[lesson.week] = 1
-
-    busiest_week = max(values, key=values.get)
-    busiest_week_lessons = list(filter(lambda l: l.week == busiest_week, gang_lessons))
-
-    return busiest_week_lessons
-
 def ico_model1_allocation(lessons: list, classrooms: list, gangs: dict, metrics: list, progress: Progress = None):
 
     values = {}
@@ -120,35 +107,35 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
     # termination_criterion: TerminationCriterion = store.default_termination_criteria,
     # population_generator: Generator = store.default_generator,
     # population_evaluator: Evaluator = store.default_evaluator
-    algorithm = MOEAD(
-        problem=problem,
-        population_size=300,
-        crossover=SPXCrossover(probability=0.8),
-        mutation=ICOMutation(probability=1 / len(lessons),
-                             classrooms_length=len(classrooms),
-                             num_bits_classroom=num_bits_classroom,
-                             num_slots=num_slots),
-        aggregative_function=Tschebycheff(dimension=problem.number_of_objectives),
-        neighbor_size=20,
-        neighbourhood_selection_probability=0.9,
-        max_number_of_replaced_solutions=2,
-        weight_files_path='resources/MOEAD_weights',
-        termination_criterion=StoppingByEvaluations(max_evaluations=100)
-    )
+    # algorithm = MOEAD(
+    #     problem=problem,
+    #     population_size=300,
+    #     crossover=SPXCrossover(probability=0.8),
+    #     mutation=ICOMutation(probability=1 / len(lessons),
+    #                          classrooms_length=len(classrooms),
+    #                          num_bits_classroom=num_bits_classroom,
+    #                          num_slots=num_slots),
+    #     aggregative_function=Tschebycheff(dimension=problem.number_of_objectives),
+    #     neighbor_size=20,
+    #     neighbourhood_selection_probability=0.9,
+    #     max_number_of_replaced_solutions=2,
+    #     weight_files_path='resources/MOEAD_weights',
+    #     termination_criterion=StoppingByEvaluations(max_evaluations=100)
+    # )
 
-    # algorithm = NSGAII(
-    #                 problem=problem,
-    #                 population_size=100,
-    #                 offspring_population_size=100,
-    #                 #mutation=BitFlipMutation(0.1),
-    #                 mutation=ICOMutation(probability=1/len(lessons),
-    #                                      classrooms_length=len(classrooms),
-    #                                      num_bits_classroom=num_bits_classroom,
-    #                                      num_slots=num_slots),
-    #                 crossover=SPXCrossover(probability=0.8),
-    #                 termination_criterion=StoppingByEvaluations(max_evaluations=200),
-    #                 population_evaluator=SparkEvaluator(processes=12)
-    #             )
+    algorithm = NSGAII(
+                    problem=problem,
+                    population_size=100,
+                    offspring_population_size=100,
+                    #mutation=BitFlipMutation(0.1),
+                    mutation=ICOMutation(probability=1/len(lessons),
+                                         classrooms_length=len(classrooms),
+                                         num_bits_classroom=num_bits_classroom,
+                                         num_slots=num_slots),
+                    crossover=SPXCrossover(probability=0.8),
+                    termination_criterion=StoppingByEvaluations(max_evaluations=200),
+                    population_evaluator=SparkEvaluator(processes=12)
+                )
     # algorithm = NSGAIII(
     #                 problem=problem,
     #                 population_size=100,

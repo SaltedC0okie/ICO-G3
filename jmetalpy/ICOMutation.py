@@ -16,6 +16,7 @@ class ICOMutation(Mutation[BinarySolution]):
         self.classrooms_length = len(classrooms)
         self.num_bits_classroom = int(math.log(len(classrooms), 2) + 1)
         self.num_slots = num_slots
+        self.classroom_slots = classroom_slots
 
     def execute(self, solution: BinarySolution) -> BinarySolution:
         Check.that(type(solution) is BinarySolution, "Solution type invalid")
@@ -27,7 +28,8 @@ class ICOMutation(Mutation[BinarySolution]):
                     solution.variables[i][j] = not solution.variables[i][j]
                     if bool_list_to_int(solution.variables[i][:self.num_bits_classroom]) >= self.classrooms_length or \
                        bool_list_to_int(solution.variables[i][self.num_bits_classroom:]) >= self.num_slots or \
-                        (self.classrooms[self.num_bits_classroom:], bool_list_to_timeslot(solution.variables[i][:self.num_bits_classroom])) not in self.classrooms_length:
+                        (self.classrooms[bool_list_to_int(solution.variables[i][:self.num_bits_classroom])],
+                         bool_list_to_timeslot(solution.variables[i][self.num_bits_classroom:])) in self.classroom_slots:
                         solution.variables[i][j] = not solution.variables[i][j]
 
         return solution
