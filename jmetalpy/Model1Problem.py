@@ -36,14 +36,17 @@ class Model1Problem(BinaryProblem):
         self.num_bits_classroom = int(math.log(len(self.classrooms), 2) + 1)
         self.num_bits_slots = int(math.log(self.num_slots, 2) + 1)
 
+        self.obj_directions = [self.MAXIMIZE for i in range(len(metrics))]
+        self.obj_labels = ['Sum', 'No. of Objects']
 
-    def evaluate(self, solution: BinaryProblem):
+
+    def evaluate(self, solution: BinarySolution):
         handle_everything = Model1Handler(self.lessons, self.classrooms, self.gangs, self.num_slots, solution).handle_gangs_everything()
         for i, metric in enumerate(self.metrics):
             # for j in created_schedule:
             #    metric.calculate(j[0], j[1])
             metric.calculate(handle_everything)
-            solution.objectives[i] = metric.get_percentage()
+            solution.objectives[i] = metric.get_total_metric_value()
             metric.reset_metric()
 
         self.__evaluate_constraints(solution)
