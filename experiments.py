@@ -7,7 +7,7 @@ from jmetal.core.solution import BinarySolution
 
 from Timeslot.TimeSlot import TimeSlot
 from alocate import Algorithm_Utils
-from alocate.Model1Handler import Model1Handler
+from alocate.Model1Handler import Model1Handler, bool_list_to_int
 from alocate.Progress import Progress
 from alocate.simple_allocation import simple_allocation
 from alocate.weekly_allocation import weekly_allocation
@@ -294,4 +294,27 @@ def test_speed_handler():
     handler = Model1Handler(lessons2, classrooms2, gangs2, num_slots, new_solution)
 
 #test_thing()
+
+def bool_list_to_timeslot(bool_list: List[bool], week: int = 0):
+    num = bool_list_to_int(bool_list)
+    hours = [(8, 00), (9, 30), (11, 0), (13, 0), (14, 30), (16, 0)]
+
+    if week == 0:
+        week = int(num / 30)  # 5*6
+        weekday = int(num / 6) - week * 5
+    else:
+        weekday = int(num / 6)
+
+    hour_inc, half_hour = hours[num % 6]
+
+    # date_1 = datetime.datetime.strptime(f"{init_month}/{init_day}/{init_year}", "%m/%d/%Y")
+    # end_date = date_1 + datetime.timedelta(days=day_inc)
+
+    slot = TimeSlot(week, weekday, hour_inc, half_hour)
+
+    return slot
+
+a = [True, True, True, True, True, True]
+
+print(bool_list_to_timeslot(a))
 

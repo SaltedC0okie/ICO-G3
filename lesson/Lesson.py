@@ -16,6 +16,7 @@ class Lesson:
         self.duration = duration
         self.requested_characteristics = requested_characteristics
         self.dateformat_list = dateformat_list
+        self.assignment = None
 
     def get_requested_characteristics(self) -> str:
         '''
@@ -135,6 +136,9 @@ class Lesson:
         time_split = split[1].split("-")
 
         return split[0], time_split[0], time_split[1]
+
+    def has_assignment(self):
+        return self.assignment is not None
 
     def __str__(self):
         return "<" + self.subject + " | " + str(

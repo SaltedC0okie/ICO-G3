@@ -16,19 +16,21 @@ def bool_list_to_int(bool_list: List[bool]) -> int:
 
 def bool_list_to_timeslot(bool_list: List[bool], week: int = 0):
     num = bool_list_to_int(bool_list)
+    hours = [(8, 00), (9, 30), (11, 0), (13, 0), (14, 30), (16, 0)]
 
     if week == 0:
-        week = int(num / 160)  # 5*32
-        weekday = int(num/32) - week*5
+        week = int(num / 30)  # 5*6
+        weekday = int(num/6) - week*5
     else:
-        weekday = int(num / 32)
-    hour_inc = int(num % 32 / 2)
-    half_hour_inc = int(num % 32 % 2)
+        weekday = int(num / 6)
+
+
+    hour_inc, half_hour = hours[num % 6]
 
     #date_1 = datetime.datetime.strptime(f"{init_month}/{init_day}/{init_year}", "%m/%d/%Y")
     #end_date = date_1 + datetime.timedelta(days=day_inc)
 
-    slot = TimeSlot(week, weekday, 8 + hour_inc, 30 * half_hour_inc)
+    slot = TimeSlot(week, weekday, hour_inc, half_hour)
 
     return slot
 

@@ -20,6 +20,19 @@ from jmetalpy.Model1Problem import Model1Problem, Model1Handler
 from metrics.Metric import *
 
 
+def filter_drenz(gang_lessons: list):
+    values = {}
+    for lesson in gang_lessons:
+        if lesson.week in values.keys():
+            values[lesson.week] += 1
+        else:
+            values[lesson.week] = 1
+
+    busiest_week = max(values, key=values.get)
+    busiest_week_lessons = list(filter(lambda l: l.week == busiest_week, gang_lessons))
+
+    return busiest_week_lessons
+
 def ico_model1_allocation(lessons: list, classrooms: list, gangs: dict, metrics: list, progress: Progress = None):
 
     values = {}
