@@ -10,6 +10,7 @@ from operator import itemgetter
 from django.http import HttpResponse, FileResponse
 import time
 from alocate import Algorithm_Utils
+from alocate.ICOModel1Allocation import ico_model1_allocation_whole_schedule
 from alocate.Progress import Progress
 from alocate.overbooking_with_jmp_algorithm import overbooking_with_jmp_algorithm
 from alocate.simple_allocation import simple_allocation
@@ -42,13 +43,14 @@ def data(request):
     request.session["under_max"] = request.POST.get("Underbooking_max")
     request.session["bad_max"] = request.POST.get("BadClassroom_max")
 
+    request.session['starting_day'] = request.POST.get("Semester_starting_day")
     # print(request.FILES['schedulefilename'])
     # request.session['schedulefile'] = request.FILES['schedulefilename']
     # print(request.session['var'])
     # request.FILES[0] = 123
 
-    headers = ["Degree", "Subject", "Shift", "Grade", "Enrolled", "Day_Week", "Starts", "Ends", "Day", "Requested_Char",
-               "Classroom", "Capacity", "Actual_Char"]
+    headers = ["Course", "Subject", "Shift", "Class", "Enrolled", "Week", "Duration",
+                     "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
 
     return render(request, 'data.html', {"hlist": headers})
 
@@ -71,7 +73,7 @@ def results(request):
             order.append(int(request.POST.get(h)))
         global progress
         progress = Progress()
-        mp = Manipulate_Documents()
+        mp = Manipulate_Documents(request.session["starting_day"])
         mySchedule = request.FILES['schedulefilename']
         mySchedule.seek(0)
         encoding = request.POST.get('encoding')
@@ -101,8 +103,6 @@ def results(request):
                 metrics.append(RoomMovements())
             if metric == "BuildingMovements":
                 metrics.append(BuildingMovements())
-            if metric == "UsedRooms":
-                metrics.append(UsedRooms())
             if metric == "ClassroomInconsistency":
                 metrics.append(ClassroomInconsistency())
             if metric == "ClassroomCollisions":
@@ -114,81 +114,70 @@ def results(request):
             classrooms = mp.import_uploaded_classrooms(request.FILES['classroomfilename'])
         else:
             classrooms = mp.import_classrooms()
-        c_copy = copy.deepcopy(classrooms)
-        l_copy = copy.deepcopy(lesson_list)
-        g_copy = copy.deepcopy(gang_dict)
-        a_simple = simple_allocation(s_copy, c_copy, progress)
 
-        c_copy = copy.deepcopy(classrooms)
-        s_copy = copy.deepcopy(schedule)
+        solutions = ico_model1_allocation_whole_schedule(lesson_list, classrooms, gang_dict, metrics)
 
-        a_weekly = weekly_allocation(s_copy, c_copy, progress, use_JMP=False) # TODO
-        count = Algorithm_Utils.check_for_collisions(a_weekly)
-        c_copy = copy.deepcopy(classrooms)
-        s_copy = copy.deepcopy(schedule)
 
-        if not request.session["over_max"]:
-            a_jmp = overbooking_with_jmp_algorithm(s_copy, c_copy, metrics_jmp_compatible, progress, use_jmp=False) # TODO
-        else:
-            a_jmp = overbooking_with_jmp_algorithm( s_copy, c_copy, metrics_jmp_compatible, progress, int(request.POST.get("Overbooking_max")), use_jmp=False) #TODO
-            
-        results_metrics = {"Metric": [], "Algorithm - Simple": [], "Algorithm - Weekly": [],
-                           "Algorithm - Overbooking": []};
-        count = Algorithm_Utils.check_for_collisions(a_jmp)
 
-        progress.set_total_tasks_metrics(len(metrics)*3-1)
 
-        schedule_s = []
-        for sublist in a_simple.values():
-            for item in sublist:
-                schedule_s.append(item)
+        #results_metrics = {"Metric": [], "Algorithm - Simple": [], "Algorithm - Weekly": [],
+        #                   "Algorithm - Overbooking": []}
 
-        for m in metrics:
-            if m.name == "ClassroomCollisions":
-                m.calculate(a_simple)
-            else:
-                m.calculate(schedule_s)
-            #print(m.name, ": ", round(m.get_percentage() * 100, 2), "%")
-            results_metrics["Metric"].append(m.name)
-            results_metrics["Algorithm - Simple"].append(str(round(m.get_percentage() * 100, 2)) + "%")
-            m.reset_metric()
-            progress.inc_cur_tasks_metrics()
-
-        schedule_andre = []
-        for sublist in a_weekly.values():
-            for item in sublist:
-                schedule_andre.append(item)
-
-        for m in metrics:
-            if m.name == "ClassroomCollisions":
-                m.calculate(a_weekly)
-            else:
-                m.calculate(schedule_andre)
-            results_metrics["Metric"].append(m.name)
-            results_metrics["Algorithm - Weekly"].append(str(round(m.get_percentage() * 100, 2)) + "%")
-            m.reset_metric()
-
-            progress.inc_cur_tasks_metrics()
- 
-        schedule_nuno = []
-        for sublist in a_jmp.values():
-            for item in sublist:
-                schedule_nuno.append(item)
-
-        len_metrics = len(metrics)
-        for i, m in enumerate(metrics):
-            if m.name == "ClassroomCollisions":
-                m.calculate(a_jmp)
-            else:
-                m.calculate(schedule_nuno)
-            results_metrics["Metric"].append(m.name)
-            results_metrics["Algorithm - Overbooking"].append(str(round(m.get_percentage() * 100, 2)) + "%")
-            m.reset_metric()
-            if i == len_metrics - 2:
-                progress.inc_cur_tasks_metrics()
-            if i != len_metrics - 1:
-                progress.inc_cur_tasks_metrics()
-
+        # count = Algorithm_Utils.check_for_collisions(a_jmp)
+        #
+        # progress.set_total_tasks_metrics(len(metrics)*3-1)
+        #
+        # schedule_s = []
+        # for sublist in a_simple.values():
+        #     for item in sublist:
+        #         schedule_s.append(item)
+        #
+        # for m in metrics:
+        #     if m.name == "ClassroomCollisions":
+        #         m.calculate(a_simple)
+        #     else:
+        #         m.calculate(schedule_s)
+        #     #print(m.name, ": ", round(m.get_percentage() * 100, 2), "%")
+        #     results_metrics["Metric"].append(m.name)
+        #     results_metrics["Algorithm - Simple"].append(str(round(m.get_percentage() * 100, 2)) + "%")
+        #     m.reset_metric()
+        #     progress.inc_cur_tasks_metrics()
+        #
+        # schedule_andre = []
+        # for sublist in a_weekly.values():
+        #     for item in sublist:
+        #         schedule_andre.append(item)
+        #
+        # for m in metrics:
+        #     if m.name == "ClassroomCollisions":
+        #         m.calculate(a_weekly)
+        #     else:
+        #         m.calculate(schedule_andre)
+        #     results_metrics["Metric"].append(m.name)
+        #     results_metrics["Algorithm - Weekly"].append(str(round(m.get_percentage() * 100, 2)) + "%")
+        #     m.reset_metric()
+        #
+        #     progress.inc_cur_tasks_metrics()
+        #
+        # schedule_nuno = []
+        # for sublist in a_jmp.values():
+        #     for item in sublist:
+        #         schedule_nuno.append(item)
+        #
+        # len_metrics = len(metrics)
+        # for i, m in enumerate(metrics):
+        #     if m.name == "ClassroomCollisions":
+        #         m.calculate(a_jmp)
+        #     else:
+        #         m.calculate(schedule_nuno)
+        #     results_metrics["Metric"].append(m.name)
+        #     results_metrics["Algorithm - Overbooking"].append(str(round(m.get_percentage() * 100, 2)) + "%")
+        #     m.reset_metric()
+        #     if i == len_metrics - 2:
+        #         progress.inc_cur_tasks_metrics()
+        #     if i != len_metrics - 1:
+        #         progress.inc_cur_tasks_metrics()
+        #
         iterator = len(results_metrics["Algorithm - Simple"])
         i = 0
         final_dict = []
@@ -204,18 +193,23 @@ def results(request):
             final_dict.append(tmp_dict)
             i += 1
         results_metrics = final_dict
+        #
+        # # a_simple represents the schedule from the simple algorithm
+        # # schedule_nuno represents the schedule from the overbooking algorithm
+        # global schedule_simple
+        # global schedule_overbooking
+        # global schedule_weekly
+        # schedule_simple = a_simple
+        # schedule_overbooking = schedule_nuno
+        # schedule_weekly = schedule_andre
 
-        # a_simple represents the schedule from the simple algorithm
-        # schedule_nuno represents the schedule from the overbooking algorithm
-        global schedule_simple
-        global schedule_overbooking
-        global schedule_weekly
-        schedule_simple = a_simple
-        schedule_overbooking = schedule_nuno
-        schedule_weekly = schedule_andre
+
         # table columns
-        headers = {"Metric": "Metrics", "Algorithm - Simple": "Algorithm - Simple",
-                   "Algorithm - Weekly": "Algorith - Weekly", "Algorithm - Overbooking": "Algorithm - Overbooking"}
+        headers = {"Metric": "Metrics"}
+        for i in range(len(solutions)):
+            headers["solution" + str(i)] = "solution" + str(i)
+        #headers = {"Metric": "Metrics", "Algorithm - Simple": "Algorithm - Simple",
+        #           "Algorithm - Weekly": "Algorith - Weekly", "Algorithm - Overbooking": "Algorithm - Overbooking"}
 
         # content of evaluation table
         context = [{"Metric": "1", "Algorithm - 1": "97.5%", "Algorithm - 2": "50%"},

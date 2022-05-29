@@ -23,6 +23,9 @@
 	<body>
 		<br>
 		<form class="content" action="download_file" method="POST" enctype="multipart/form-data">{% csrf_token %}
+			{% for key,value in table_headers.items %}
+				{title:"{{value}}", field:"{{key}}", hozAlign:"left"},
+			{% endfor %}
 			<label id="hidden_simple" name="hidden_simple" style="display: none;" type="hidden">{{simple_algorithm}}</label>
 			<label id="hidden_weekly" name="hidden_weekly" style="display: none;" type="hidden">{{weekly_algorithm}}</label>
 			<label id="hidden_overbooking" name="hidden_overbooking" style="display: none;" type="hidden">{{overbooking_algorithm}}</label>

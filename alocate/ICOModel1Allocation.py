@@ -79,7 +79,7 @@ from metrics.Metric import *
 #         pass
 
 
-def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs: dict, metrics: list, year: int, progress: Progress = None):
+def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs: dict, metrics: list, progress: Progress = None):
 
     values = set()
     for lesson in lessons:
@@ -138,6 +138,7 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
         for i in range(len(solution.objectives)):
             print(f"{metrics[i].name}- {solution.objectives[i]}")
 
+    return front
     #return make_lessons30(one_solution, lessons, classrooms), one_solution
 
 
