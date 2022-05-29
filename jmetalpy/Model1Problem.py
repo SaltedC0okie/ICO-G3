@@ -36,7 +36,7 @@ class Model1Problem(BinaryProblem):
         self.num_bits_classroom = int(math.log(len(self.classrooms), 2) + 1)
         self.num_bits_slots = int(math.log(self.num_slots, 2) + 1)
 
-    def evaluate(self, solution: BinaryProblem):
+    def evaluate(self, solution: BinarySolution):
         for i, metric in enumerate(self.metrics):
             # for j in created_schedule:
             #    metric.calculate(j[0], j[1])
@@ -64,16 +64,22 @@ class Model1Problem(BinaryProblem):
             passed_assignments.add(a_num)
             solution.constraints[i] = 1
 
-
-
     def create_solution(self) -> BinarySolution:
         new_solution = BinarySolution(self.number_of_variables,
                                       self.number_of_objectives,
                                       self.number_of_constraints)
         new_solution.variables = []
         for i in range(self.number_of_variables):
-            bitset = [True if random.random() < 0.5 else False for b in range(self.num_bits_classroom)]
-            bitset.extend([True if random.random() < 0.5 else False for b in range(self.num_bits_slots)])
+            bitset_classroom = [True if random.random() < 0.5 else False for b in range(self.num_bits_classroom)]
+            while bool_list_to_int(bitset_classroom) >= len(self.classrooms):
+                bitset_classroom = [True if random.random() < 0.5 else False for b in range(self.num_bits_classroom)]
+
+            bitset_timeslot = [True if random.random() < 0.5 else False for b in range(self.num_bits_slots)]
+            while bool_list_to_int(bitset_timeslot) >= self.num_slots:
+                bitset_timeslot = [True if random.random() < 0.5 else False for b in range(self.num_bits_slots)]
+
+            bitset_classroom.extend(bitset_timeslot)
+            bitset = bitset_classroom
             new_solution.variables.append(bitset)
         return new_solution
 

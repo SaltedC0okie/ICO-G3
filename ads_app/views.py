@@ -232,7 +232,7 @@ def results(request):
         context = [{"Metric": "1", "Algorithm - 1": "97.5%", "Algorithm - 2": "50%"},
                    {"Metric": "2", "Algorithm - 1": "10.5%", "Algorithm - 2": "99.7%"}]
         context = json.dumps(context)
-        #results_metrics = json.dumps(results_metrics)
+        results_metrics = json.dumps(results_metrics)
         # content of all algorithms to show on page, append to render
         print(f"headers: {headers}")
         print(f"results_metrics: {results_metrics}")

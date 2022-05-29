@@ -18,83 +18,22 @@ from jmetalpy.Model1Problem import Model1Problem, Model1Handler
 from metrics.Metric import *
 
 
-# def ico_model1_allocation(lessons: list, classrooms: list, gangs: dict, metrics: list, year: int, progress: Progress = None):
-#
-#     values = {}
-#     for lesson in lessons:
-#         if lesson.week in values.keys():
-#             values[lesson.week] += 1
-#         else:
-#             values[lesson.week] = 1
-#
-#     busiest_week = max(values, key=values.get)
-#     busiest_week_lessons = list(filter(lambda l: l.week == busiest_week, lessons))
-#     #busiest_week_lessons = lessons.filter(lambda lesson: lesson.week == busiest_week)
-#
-#     print(f"busiest week: {busiest_week}")
-#
-#     problem = Model1Problem(busiest_week_lessons, classrooms, gangs, len(busiest_week), metrics, busiest_week, year)
-#
-#     #algorithm = MOEAD(problem=problem,
-#     #                 population_size=300,
-#     #                 crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
-#     #                 mutation=BitFlipMutation(probability=1.0 / problem.number_of_variables),
-#     #                 aggregative_function=WeightedSum(),
-#     #                 neighbor_size=20,
-#     #                 neighbourhood_selection_probability=0.9,
-#     #                 max_number_of_replaced_solutions=2,
-#     #                 weight_files_path='resources/MOEAD_weights',
-#     #                 termination_criterion=StoppingByEvaluations(50)
-#     #                 )
-#
-#     algorithm = NSGAII(
-#                     problem=problem,
-#                     population_size=100,
-#                     offspring_population_size=100,
-#                     mutation=BitFlipMutation(probability=1.0 / problem.number_of_variables),  # (probability=1.0 / problem.number_of_variables),
-#                     crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
-#                     termination_criterion=StoppingByEvaluations(max_evaluations=200)
-#                 )
-#
-#     progress_bar = ProgressBarObserver(max=25000)
-#     algorithm.observable.register(progress_bar)
-#     start = time.time()
-#
-#     print("gonna run")
-#     algorithm.run()
-#     elapsed_time = time.time() - start
-#
-#     print("Elapsed time: ", elapsed_time)
-#
-#     solutions = algorithm.get_result()
-#     front = get_non_dominated_solutions(solutions)
-#
-#     print(front)
-#
-#     num_slots = len(busiest_week)*35*5
-#     one_solution = front[int(len(front)/2)]
-#     # TODO o init_day, month e year não vão ser precisos
-#     m1h = Model1Handler(lessons, classrooms, gangs, num_slots, one_solution, busiest_week)
-#
-#     for week_num in range(len(busiest_week)):
-#         pass
+def ico_model1_allocation(lessons: list, classrooms: list, gangs: dict, metrics: list, progress: Progress = None):
 
-
-def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs: dict, metrics: list, progress: Progress = None):
-
-    values = set()
+    values = {}
     for lesson in lessons:
-        values.add(lesson.week)
+        if lesson.week in values.keys():
+            values[lesson.week] += 1
+        else:
+            values[lesson.week] = 1
 
-    #busiest_week = max(values, key=values.get)
-    #busiest_week_lessons = list(filter(lambda l: l.week == busiest_week, lessons))
+    busiest_week = max(values, key=values.get)
+    busiest_week_lessons = list(filter(lambda l: l.week == busiest_week, lessons))
     #busiest_week_lessons = lessons.filter(lambda lesson: lesson.week == busiest_week)
 
-    #print(f"busiest week: {busiest_week}")
+    print(f"busiest week: {busiest_week}")
 
-    num_slots = len(values)*160
-
-    problem = Model1Problem(lessons, classrooms, gangs, num_slots, metrics)
+    problem = Model1Problem(busiest_week_lessons, classrooms, gangs, len(busiest_week), metrics)
 
     #algorithm = MOEAD(problem=problem,
     #                 population_size=300,
@@ -108,23 +47,17 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
     #                 termination_criterion=StoppingByEvaluations(50)
     #                 )
 
-    num_bits_classroom = int(math.log(len(classrooms), 2) + 1)
-
     algorithm = NSGAII(
                     problem=problem,
                     population_size=100,
                     offspring_population_size=100,
-                    mutation=ICOMutation(probability=0.1,
-                                         classrooms_length=len(classrooms),
-                                         num_bits_classroom=num_bits_classroom,
-                                         num_slots=num_slots),
-                    crossover=SPXCrossover(probability=0.8),
-                    termination_criterion=StoppingByEvaluations(max_evaluations=2),
-                    population_evaluator=SparkEvaluator(processes=12)
+                    mutation=BitFlipMutation(probability=1.0 / problem.number_of_variables),  # (probability=1.0 / problem.number_of_variables),
+                    crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
+                    termination_criterion=StoppingByEvaluations(max_evaluations=200)
                 )
 
-    progress_bar = ProgressBarObserver(max=10)
-    algorithm.observable.register(progress_bar)
+    #progress_bar = ProgressBarObserver(max=25000)
+    #algorithm.observable.register(progress_bar)
     start = time.time()
 
     print("gonna run")
@@ -135,6 +68,68 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
 
     solutions = algorithm.get_result()
     front = get_non_dominated_solutions(solutions)
+
+    print(front)
+
+    num_slots = len(busiest_week)*35*5
+    one_solution = front[int(len(front)/2)]
+
+    m1h = Model1Handler(lessons, classrooms, gangs, num_slots, one_solution, busiest_week)
+
+    for week_num in range(len(busiest_week)):
+        pass
+
+
+def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs: dict, metrics: list, progress: Progress = None):
+    values = {}
+    for lesson in lessons:
+        if lesson.week in values.keys():
+            values[lesson.week] += 1
+        else:
+            values[lesson.week] = 1
+
+    busiest_week = max(values, key=values.get)
+    busiest_week_lessons = list(filter(lambda l: l.week == busiest_week, lessons))
+
+    lessons = busiest_week_lessons # TODO TEMPORÁRIO
+
+    #values = set()
+    #for lesson in lessons:
+    #    values.add(lesson.week)
+
+    # num_slots = len(values)*160 # TODO TEMPORÁRIO
+    num_slots = 160
+    num_bits_classroom = int(math.log(len(classrooms), 2) + 1)
+
+    problem = Model1Problem(lessons, classrooms, gangs, num_slots, metrics)
+
+    algorithm = NSGAII(
+                    problem=problem,
+                    population_size=100,
+                    offspring_population_size=100,
+                    #mutation=BitFlipMutation(0.1),
+                    mutation=ICOMutation(probability=1/len(lessons),
+                                         classrooms_length=len(classrooms),
+                                         num_bits_classroom=num_bits_classroom,
+                                         num_slots=num_slots),
+                    crossover=SPXCrossover(probability=0.8),
+                    termination_criterion=StoppingByEvaluations(max_evaluations=2000),
+                    population_evaluator=SparkEvaluator(processes=12)
+                )
+
+    progress_bar = ProgressBarObserver(max=10)
+    algorithm.observable.register(progress_bar)
+
+    print("gonna run")
+    start = time.time()
+    algorithm.run()
+    elapsed_time = time.time() - start
+    print("Elapsed time: ", elapsed_time)
+
+    solutions = algorithm.get_result()
+    front = get_non_dominated_solutions(solutions)
+
+    print(f"length do front: {len(front)}")
 
     one_solution = front[int(len(front)/2)]
     print(one_solution.objectives)
@@ -194,5 +189,15 @@ if __name__ == '__main__':
 
 
 
-
+#algorithm = MOEAD(problem=problem,
+    #                 population_size=300,
+    #                 crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
+    #                 mutation=BitFlipMutation(probability=1.0 / problem.number_of_variables),
+    #                 aggregative_function=WeightedSum(),
+    #                 neighbor_size=20,
+    #                 neighbourhood_selection_probability=0.9,
+    #                 max_number_of_replaced_solutions=2,
+    #                 weight_files_path='resources/MOEAD_weights',
+    #                 termination_criterion=StoppingByEvaluations(50)
+    #                 )
 

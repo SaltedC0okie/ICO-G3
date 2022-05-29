@@ -108,7 +108,6 @@ class Manipulate_Documents:
         :param use_classrooms:
         :return:
         """
-        print("ROWOWOW", row)
         if row[header_order[5]] and row[header_order[6]]:
             if not row[header_order[4]]:
                 row[header_order[4]] = 30
@@ -227,7 +226,6 @@ class Manipulate_Documents:
         :param sum_classroom_characteristics:
         :return:
         '''
-        print("ROWOOWWwwww ", row)
 
         charact_list = []
         for i in range(5, len(row)):
