@@ -18,12 +18,12 @@ class Model1Problem(BinaryProblem):
         self.gangs = gangs
         self.metrics = metrics
 
-        #d = f"{year}-W{week}"
-        #starting_date = datetime.datetime.strptime(d + '-1', "%Y-W%W-%w")
+        # d = f"{year}-W{week}"
+        # starting_date = datetime.datetime.strptime(d + '-1', "%Y-W%W-%w")
 
-        #self.init_day = starting_date.day
-        #self.init_month = starting_date.month
-        #self.init_year = year
+        # self.init_day = starting_date.day
+        # self.init_month = starting_date.month
+        # self.init_year = year
 
         self.number_of_objectives = len(self.metrics)
         self.number_of_variables = len(self.lessons)
@@ -39,9 +39,9 @@ class Model1Problem(BinaryProblem):
         self.obj_directions = [self.MINIMIZE for i in range(len(metrics))]
         self.obj_labels = ['Sum', 'No. of Objects']
 
-
     def evaluate(self, solution: BinarySolution):
-        handle_everything = Model1Handler(self.lessons, self.classrooms, self.gangs, self.num_slots, solution).handle_gangs_everything()
+        handle_everything = Model1Handler(self.lessons, self.classrooms, self.gangs, self.num_slots,
+                                          solution).handle_gangs_everything()
         for i, metric in enumerate(self.metrics):
             # for j in created_schedule:
             #    metric.calculate(j[0], j[1])
@@ -62,7 +62,7 @@ class Model1Problem(BinaryProblem):
                 continue
 
             if len(self.classrooms) <= bool_list_to_int(assignment[:self.num_bits_classroom]) or \
-               self.num_slots <= bool_list_to_int(assignment[self.num_bits_classroom:]):
+                    self.num_slots <= bool_list_to_int(assignment[self.num_bits_classroom:]):
                 solution.constraints[i] = -1
                 continue
 

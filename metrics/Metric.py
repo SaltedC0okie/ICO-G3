@@ -280,6 +280,7 @@ class RoomMovements(Metric):
             possible_movements = 0
             for lesson in dict_lesson_timeslot_classroom_sorted.keys():
                 if gang in lesson.gang_list:
+                    possible_movements += 1
                     actual_timeslot = dict_lesson_timeslot_classroom_sorted[lesson][0]
                     actual_classroom = dict_lesson_timeslot_classroom_sorted[lesson][1]
                     if previous_lesson is None:
@@ -295,10 +296,9 @@ class RoomMovements(Metric):
                     if actual_classroom != previous_classroom:
                         movements += 1
 
-                    possible_movements += 1
                     previous_lesson = lesson
-
-            self.value.append((movements, possible_movements))
+            if possible_movements != 0:
+                self.value.append((movements, possible_movements))
 
     def get_total_metric_value(self):
         return sum([m[0] for m in self.value])
@@ -468,6 +468,60 @@ class ClassroomCollisions(Metric):
     def get_percentage(self):
         if self.value == -1:
             return 1
+        return self.value / self.total
+
+    def reset_metric(self):
+        self.value = 0
+        self.total = 0
+
+
+class LessonCollisions(Metric):
+
+    def __init__(self, prefered_max=0.4):
+        super().__init__("LessonCollisions", prefered_max)
+        self.objective = Problem.MAXIMIZE
+        self.m_type = "gangsWithEverything"  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
+        self.value = 0
+        self.total = 0
+
+    def calculate(self, handle_gangs_everything: (dict, dict)):
+        """
+        Receives a Schedule and calculates the number of times a classroom is assigned more than once in a half hour
+        block :param
+        handler: :return:
+        """
+        dict_string_gang, dict_lesson_timeslot_classroom = handle_gangs_everything
+        filtered = {k: v for k, v in dict_lesson_timeslot_classroom.items()
+                    if v[0] is not None and v[1] is not None}
+        dict_lesson_timeslot_classroom.clear()
+        dict_lesson_timeslot_classroom.update(filtered)
+
+        dict_lesson_timeslot_classroom_sorted = dict(
+            sorted(dict_lesson_timeslot_classroom.items(), key=lambda item: (item[1][0].week, item[1][0].weekday,
+                                                                             item[1][0].hour, item[1][0].minute)))
+        for gang in dict_string_gang.values():
+            collisions = 0
+            possible_collisions = 0
+            timeslot_set = set()
+            for lesson in dict_lesson_timeslot_classroom_sorted.keys():
+                if gang in lesson.gang_list:
+                    possible_collisions += 1
+                    timeslot = dict_lesson_timeslot_classroom_sorted[lesson][0]
+                    for ts in timeslot_set:
+                        if timeslot.week == ts.week and timeslot.weekday == ts.weekday \
+                                and timeslot.hour == ts.hour and timeslot.minute == ts.minute:
+                            collisions += 1
+                            break
+                    timeslot_set.add(timeslot)
+            self.value += collisions
+            self.total += possible_collisions
+
+    def get_total_metric_value(self):
+        return self.value
+
+    def get_percentage(self):
+        if self.total == 0:
+            return 0
         return self.value / self.total
 
     def reset_metric(self):

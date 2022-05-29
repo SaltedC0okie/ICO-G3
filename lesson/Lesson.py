@@ -142,7 +142,7 @@ class Lesson:
 
     def __str__(self):
         return "<" + self.subject + " | " + str(
-            self.number_of_enrolled_students) + " | " + self.day + " | " + self.start + "-" + self.end + ">"
+            self.number_of_enrolled_students) + " | " + str(self.number_of_enrolled_students) + ">"
 
     def __repr__(self):
         return str(self)

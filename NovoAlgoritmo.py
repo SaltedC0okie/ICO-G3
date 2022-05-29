@@ -1,3 +1,4 @@
+import random
 import time
 
 from jmetal.algorithm.multiobjective import NSGAII
@@ -6,13 +7,14 @@ from jmetal.util.evaluator import SparkEvaluator
 from jmetal.util.solution import get_non_dominated_solutions
 from jmetal.util.termination_criterion import StoppingByEvaluations
 
+from Timeslot.TimeSlot import TimeSlot
 from alocate.Model1Handler import Model1Handler
 from file_manager.Manipulate_Documents import Manipulate_Documents
 import statistics
 
 from jmetalpy.ICOMutation import ICOMutation
 from jmetalpy.Model1Problem import Model1Problem
-from metrics.Metric import Overbooking, Underbooking, BadClassroom, RoomMovements
+from metrics.Metric import Overbooking, Underbooking, BadClassroom, RoomMovements, LessonCollisions
 
 
 def filter_drenz(gang_lessons: list):
@@ -23,14 +25,16 @@ def filter_drenz(gang_lessons: list):
         else:
             values[lesson.week] = 1
 
-    dict_distribution = sorted(values.items(), key=lambda item: item[1])
-    dict_distribution = dict([(k, v) for k, v in dict_distribution])
-    week, num = dict_distribution.popitem()
+    # dict_distribution = sorted(values.items(), key=lambda item: item[1])
+    # dict_distribution = dict([(k, v) for k, v in dict_distribution])
+    # week, num = dict_distribution.popitem()
 
-    #busiest_week = max(values, key=values.get)
+    # busiest_week = max(values, key=values.get)
+    week = list(values.keys())[random.randint(0, len(values))]
     busiest_week_lessons = list(filter(lambda l: l.week == week, gang_lessons))
 
     return busiest_week_lessons
+
 
 if __name__ == '__main__':
     md = Manipulate_Documents(1)
@@ -38,7 +42,7 @@ if __name__ == '__main__':
     lessons, gangs = md.import_lessons_and_gangs2("input_documents/Exemplo_de_horario_primeiro_semestre_ICO.csv",
                                                   order, ["MM", "DD", "YYYY"])
     classrooms = md.import_classrooms2("input_classrooms/Salas.csv")
-    metrics = [Overbooking(), BadClassroom(), RoomMovements()]
+    metrics = [LessonCollisions()]
     num_slots = 30  # 6 slots diários vezes 5 dias
     classroom_slots = set()
 
@@ -59,17 +63,17 @@ if __name__ == '__main__':
 
     problem = Model1Problem(semana, classrooms, gangs, num_slots, metrics)
     algorithm = NSGAII(
-                        problem=problem,
-                        population_size=100,
-                        offspring_population_size=100,
-                        #mutation=BitFlipMutation(0.1),
-                        mutation=ICOMutation(probability=0.1,
-                                             classrooms=classrooms,
-                                             num_slots=num_slots,
-                                             classroom_slots=classroom_slots),
-                        crossover=SPXCrossover(probability=0.8),
-                        termination_criterion=StoppingByEvaluations(max_evaluations=2000),
-                    )
+        problem=problem,
+        population_size=100,
+        offspring_population_size=100,
+        # mutation=BitFlipMutation(0.1),
+        mutation=ICOMutation(probability=0.1,
+                             classrooms=classrooms,
+                             num_slots=num_slots,
+                             classroom_slots=classroom_slots),
+        crossover=SPXCrossover(probability=0.8),
+        termination_criterion=StoppingByEvaluations(max_evaluations=5000),
+    )
     print("gonna run")
     start = time.time()
     algorithm.run()
@@ -80,6 +84,8 @@ if __name__ == '__main__':
     front = get_non_dominated_solutions(solutions)
 
     print(f"length do front: {len(front)}")
+    # sol = problem.create_solution()
+    # front = [sol]
 
     metric_percents = []
     for solution in front:
@@ -97,6 +103,7 @@ if __name__ == '__main__':
         print("Objectives:")
         for i in range(len(percents)):
             print(f"{metrics[i].name}- {percents[i]}")
+
 
     # one_solution = front[int(len(front)/2)]
     # print(one_solution.objectives)
