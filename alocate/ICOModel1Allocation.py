@@ -120,6 +120,7 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
                                          num_slots=num_slots),
                     crossover=SPXCrossover(probability=0.8),
                     termination_criterion=StoppingByEvaluations(max_evaluations=2),
+
                     population_evaluator=SparkEvaluator(processes=12)
                 )
 
@@ -136,8 +137,6 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
     solutions = algorithm.get_result()
     front = get_non_dominated_solutions(solutions)
 
-    print(front)
-
     one_solution = front[int(len(front)/2)]
     print(one_solution.objectives)
     for solution in front:
@@ -146,7 +145,9 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
         for i in range(len(solution.objectives)):
             print(f"{metrics[i].name}- {solution.objectives[i]}")
 
-    return make_lessons30(one_solution, lessons, classrooms), one_solution
+
+    return front
+    #return make_lessons30(one_solution, lessons, classrooms), one_solution
 
 
 def make_lessons30(solution1: BinarySolution, lessons1, classrooms1):

@@ -25,7 +25,7 @@ class Manipulate_Documents:
         self.output_path = output_path
         self.input_classrooms = input_classrooms
         # TODO
-        self.semester_starting_day = semester_starting_day
+        self.semestera_starting_day = semester_starting_day
         self.classroom_list = []
 
     # Código Carlos
@@ -39,9 +39,9 @@ class Manipulate_Documents:
         gang_list = {}
 
         if encoding not in ["utf-8", "ansi"]:
-            csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")))
+            csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")), delimiter=';')
         else:
-            csvreader = csv.reader(io.StringIO(file_name.read().decode(encoding)))
+            csvreader = csv.reader(io.StringIO(file_name.read().decode(encoding)), delimiter=';')
         next(csvreader)
         for row in csvreader:
             self.read_schedule_row(row, lesson_list, gang_list, header_order, dateformat_list)
@@ -108,7 +108,7 @@ class Manipulate_Documents:
         :param use_classrooms:
         :return:
         """
-
+        print("ROWOWOW", row)
         if row[header_order[5]] and row[header_order[6]]:
             if not row[header_order[4]]:
                 row[header_order[4]] = 30
@@ -137,7 +137,7 @@ class Manipulate_Documents:
     def import_uploaded_classrooms(self, file_name: TemporaryUploadedFile):
         sum_classroom_characteristics = {}
 
-        csvreader = csv.reader(io.StringIO(file_name.read().decode('utf-8')))
+        csvreader = csv.reader(io.StringIO(file_name.read().decode('utf-8')), delimiter=';')
         header = next(csvreader)
 
         for row in csvreader:
@@ -154,10 +154,10 @@ class Manipulate_Documents:
         """
         sum_classroom_characteristics = {}
         if file_name is not None:
-            csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")))
+            csvreader = csv.reader(io.StringIO(file_name.read().decode("utf-8")), delimiter=';')
         else:
             file_name = open("input_classrooms/Salas.csv", 'r', encoding="utf8")
-            csvreader = csv.reader(file_name)
+            csvreader = csv.reader(file_name, delimiter=';')
         header = next(csvreader)
         for row in csvreader:
             self.read_classroom_row(row, header, sum_classroom_characteristics)
@@ -227,6 +227,8 @@ class Manipulate_Documents:
         :param sum_classroom_characteristics:
         :return:
         '''
+        print("ROWOOWWwwww ", row)
+
         charact_list = []
         for i in range(5, len(row)):
             if row[i].lower() == "x":
@@ -357,8 +359,6 @@ class Manipulate_Documents:
         string = string[:-2]
         return string
 
-
-
     def import_schedule_documents_old(self, file_name: str, use_classrooms: bool, encoding: str = "utf-8"):
         """
         Imports a csv of a schedule into a list of Lesson objects and Gang (class) objects
@@ -459,13 +459,15 @@ class Manipulate_Documents:
                 if classroom:
                     date_lesson_start = self.calculate_day(week, weekday, hour, minute, starting_day)
                     duration = lesson.duration.split(":")
-                    duration_delta = timedelta(hours=int(duration[0]), minutes=int(duration[1]), seconds=int(duration[2]))
+                    duration_delta = timedelta(hours=int(duration[0]), minutes=int(duration[1]),
+                                               seconds=int(duration[2]))
                     date_lesson_end = date_lesson_start + duration_delta
-                    rows.append(lesson.course + ";" + lesson.subject + ";" + lesson.shift + ";" + lesson.gang_list + ";" +
-                                date_lesson_start.weekday + ";" + date_lesson_start.strftime("%H:%M:%S") + ";" +
-                                date_lesson_end.strftime("%H:%M:%S") + ";" + date_lesson_start.strftime("%m/%d/%Y") + ";" +
-                                lesson.requested_characteristics + ";" + classroom.name + ";" + classroom.normal_capacity + ";" +
-                                self.list_to_comma_sep_string(classroom.characteristics))
+                    rows.append(
+                        lesson.course + ";" + lesson.subject + ";" + lesson.shift + ";" + lesson.gang_list + ";" +
+                        date_lesson_start.weekday + ";" + date_lesson_start.strftime("%H:%M:%S") + ";" +
+                        date_lesson_end.strftime("%H:%M:%S") + ";" + date_lesson_start.strftime("%m/%d/%Y") + ";" +
+                        lesson.requested_characteristics + ";" + classroom.name + ";" + classroom.normal_capacity + ";" +
+                        self.list_to_comma_sep_string(classroom.characteristics))
                 else:
                     date_lesson_start = self.calculate_day(week, weekday, hour, minute, starting_day)
                     duration = lesson.duration.split(":")
@@ -489,4 +491,3 @@ class Manipulate_Documents:
         actual_date.weekday = weekday
         actual_date = actual_date.replace(hour=hour, minute=minute)
         return actual_date
-
