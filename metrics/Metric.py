@@ -38,26 +38,6 @@ class Metric(ABC):
         pass
 
 
-# Código André
-# class MetricICO(ABC):
-#     m_type = None
-#
-#     def __init__(self, name, prefered_max=0.4):
-#         self.name = name
-#         self.value = []
-#         self.prefered_max = prefered_max
-#         self.weight = 0.5
-#
-#     @abstractmethod
-#     def calculate(self, lessons: list, classrooms: list, gangs: dict, init_day: int, init_month: int, init_year: int,
-#                   solution: BinarySolution):
-#         pass
-#
-#     @abstractmethod
-#     def reset_metric(self):
-#         pass
-
-
 class RoomlessLessons(Metric):
 
     def __init__(self, prefered_max=0.2):
@@ -122,31 +102,6 @@ class Overbooking(Metric):
 
     def reset_metric(self):
         self.value = []
-
-
-# Código André
-# class OverbookingICO(MetricICO):
-#
-#     def __init__(self, prefered_max=0.9):
-#         super().__init__("Overbooking", prefered_max)
-#         self.objective = Problem.MINIMIZE
-#         self.m_type = "lessonClassroom"  # List[(Lesson, Classroom)]
-#         self.value = []
-#
-#     def calculate(self, handler: Handler):
-#
-# for i, assignment in handler: classroom = classrooms[bool_list_to_int(assignment[:len(classrooms)])] lesson =
-# lessons[i] if classroom and lesson.number_of_enrolled_students > classroom.normal_capacity: # self.value.append((
-# lesson.number_of_enrolled_students - classroom.normal_capacity) / classroom.normal_capacity) self.value.append(
-# classroom.normal_capacity / lesson.number_of_enrolled_students) # self.value.append(
-# lesson.number_of_enrolled_students - classroom.normal_capacity) else: self.value.append(0)
-#
-#     def get_percentage(self):
-#         if len(self.value) == 0: return 0
-#         return sum(self.value) / len(self.value)
-#
-#     def reset_metric(self):
-#         self.value = []
 
 
 class Underbooking(Metric):
@@ -247,15 +202,8 @@ class Gaps(Metric):
                     if previous_lesson is None:
                         previous_lesson = lesson
                         continue
-                    if dict_lesson_timeslot_sorted[lesson].weekday is None or \
-                            dict_lesson_timeslot_sorted[previous_lesson].weekday is None:
-                        self.value = -1
-                        return
                     if dict_lesson_timeslot_sorted[lesson].weekday != \
                             dict_lesson_timeslot_sorted[previous_lesson].weekday:
-                        self.value.append(self.blocks_in_interval(dict_lesson_timeslot_sorted[previous_lesson],
-                                                                  dict_lesson_timeslot_sorted[lesson],
-                                                                  previous_lesson.duration))
                         previous_lesson = lesson
                         continue
 
@@ -272,14 +220,16 @@ class Gaps(Metric):
         t2 = datetime.timedelta(hours=actual_time_start.hour, minutes=actual_time_start.minute)
         t3 = datetime.timedelta(hours=0, minutes=30)
 
-        return (t1 - t2) / t3
+        total_gaps_time = (abs((t2.seconds - t1.seconds)) / 3600) / (t3.seconds / 3600)
+
+        if total_gaps_time < 15:
+            return total_gaps_time
+        else:
+            return 0
 
     def get_percentage(self):
-        block_time = datetime.timedelta(hours=0, minutes=30)
-        if self.value[0] == -1:
-            return 1
-        else:
-            return sum([e for e in self.value]) / len(self.value) * block_time
+        norm = [(float(i) - min(self.value)) / (max(self.value) - min(self.value)) for i in self.value]
+        return sum([e for e in norm]) / len(norm)
 
     def reset_metric(self):
         self.value = []
@@ -322,11 +272,6 @@ class RoomMovements(Metric):
                         previous_lesson = lesson
                         continue
 
-                    if dict_lesson_timeslot_classroom_sorted[lesson][0].weekday is None or \
-                            dict_lesson_timeslot_classroom_sorted[previous_lesson][0].weekday is None:
-                        self.value = -1
-                        return
-
                     previous_timeslot = dict_lesson_timeslot_classroom_sorted[previous_lesson][0]
                     previous_classroom = dict_lesson_timeslot_classroom_sorted[previous_lesson][1]
 
@@ -342,10 +287,7 @@ class RoomMovements(Metric):
             self.value.append((movements, possible_movements))
 
     def get_percentage(self):
-        if self.value[0] == -1:
-            return 1
-        else:
-            return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
+        return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
 
     def reset_metric(self):
         self.value = []
@@ -400,50 +342,13 @@ class BuildingMovements(Metric):
                     possible_movements += 1
             self.value.append((movements, possible_movements))
 
-    # def get_total_metric_value(self):
-    #     return sum([m[0] for m in self.value]) / len(self.value)
-
     def get_percentage(self):
-        if self.value[0] == -1:
-            return 1
-        else:
-            return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
+        return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
 
     def reset_metric(self):
         self.value = []
 
 
-# class UsedRooms(Metric):
-#
-#     def __init__(self, prefered_max=0.4):
-#         super().__init__("UsedRooms", prefered_max)
-#         self.objective = Problem.MINIMIZE
-#         self.m_type = "lessons"
-#         self.value = []
-#         self.total = 0
-#
-#     def calculate(self, schedule: list):
-#         '''
-#         Receives a Schedule and calculates the number of Used Rooms
-#         :param schedule:
-#         :return:
-#         '''
-#         for lesson, classroom in schedule:
-#             self.total += 1
-#             if classroom not in self.value:
-#                 self.value.append(classroom)
-#
-#     def get_total_metric_value(self):
-#         return len(self.value)
-#
-#     def get_percentage(self):
-#         return len(self.value) / self.total
-#
-#     def reset_metric(self):
-#         self.value = []
-#         self.total = 0
-
-# TODO deal with TimeSlot Nones
 class ClassroomInconsistency(Metric):
 
     def __init__(self, prefered_max=0.4):
@@ -482,9 +387,6 @@ class ClassroomInconsistency(Metric):
 
             for c, pc in dict_subject.values():
                 self.value.append((len(c), pc))
-
-    # def get_total_metric_value(self):
-    #     return sum([m[0] for m in self.value]) / len(self.value)
 
     def get_percentage(self):
         return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
@@ -528,9 +430,6 @@ class ClassroomCollisions(Metric):
         except AttributeError:
             self.value = -1
             self.total = 1
-
-    # def get_total_metric_value(self):
-    #     return self.value
 
     def get_percentage(self):
         if self.value == -1:
@@ -579,11 +478,6 @@ class GangLessonVolume(Metric):
                         previous_lesson = lesson
                         continue
 
-                    if dict_lesson_timeslot_sorted[lesson].weekday is None or \
-                            dict_lesson_timeslot_sorted[previous_lesson].weekday is None:
-                        self.value = -1
-                        return
-
                     previous_timeslot = dict_lesson_timeslot_sorted[previous_lesson]
 
                     if actual_timeslot.weekday != previous_timeslot.weekday:
@@ -593,14 +487,13 @@ class GangLessonVolume(Metric):
                         continue
 
                     duration_list.append(lesson.duration)
+                    previous_lesson = lesson
 
     def number_of_hours(self, duration_list: List[str]):
         total_time = 0
         for duration in duration_list:
             duration_str = duration.split(":")
-            #duration = datetime.timedelta(hours=int(duration_str[0]), minutes=int(duration_str[1]))
-            total_time += int(duration_str[0]) + int(duration_str[1])/60
-
+            total_time += int(duration_str[0]) + int(duration_str[1]) / 60
         return total_time
 
     # def get_total_metric_value(self):
@@ -608,7 +501,8 @@ class GangLessonVolume(Metric):
 
     # TODO - find the best way to get the percentage
     def get_percentage(self):
-        return sum([m for m in self.value]) / len(self.value)
+        norm = [(float(i) - min(self.value)) / (max(self.value) - min(self.value)) for i in self.value]
+        return sum([e for e in norm]) / len(norm)
 
     def reset_metric(self):
         self.value = []
@@ -698,10 +592,6 @@ class GangLessonDistribution(Metric):
 
         return bad_distribution / total_distribution
 
-    # TODO WILL BE REMOVED LATER
-    # def get_total_metric_value(self):
-    #     return sum([m for m in self.value]) / len(self.value)
-
     def get_percentage(self):
         return sum([m for m in self.value]) / len(self.value)
 
@@ -748,9 +638,6 @@ class LessonInconsistency(Metric):
 
             for ts, pts in dict_subject.values():
                 self.value.append((len(ts), pts))
-
-    # def get_total_metric_value(self):
-    #     return sum([m[0] for m in self.value]) / len(self.value)
 
     def get_percentage(self):
         return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])

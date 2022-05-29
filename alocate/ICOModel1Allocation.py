@@ -111,8 +111,8 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
                     offspring_population_size=100,
                     mutation=BitFlipMutation(probability=1.0 / problem.number_of_variables),  # (probability=1.0 / problem.number_of_variables),
                     crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
-                    termination_criterion=StoppingByEvaluations(max_evaluations=10),
-                    population_evaluator=SparkEvaluator(processes=12)
+                    termination_criterion=StoppingByEvaluations(max_evaluations=1),
+                    # population_evaluator=SparkEvaluator(processes=12)
                 )
 
     progress_bar = ProgressBarObserver(max=10)
@@ -170,8 +170,9 @@ if __name__ == '__main__':
                                                     order, ["MM", "DD", "YYYY"])
     classrooms2 = md.import_classrooms2()
 
-    metrics2 = [RoomlessLessons(), Overbooking(), BadClassroom(), Gaps(), RoomMovements(), ClassroomInconsistency(),
-                ClassroomCollisions(), GangLessonVolume(), LessonInconsistency()]
+    metrics2 = [GangLessonVolume()]
+    # RoomlessLessons(), Overbooking(), BadClassroom(), Gaps(), RoomMovements(), ClassroomInconsistency(),
+    #                 ClassroomCollisions(), GangLessonVolume(), LessonInconsistency()
     # metrics2 = [Overbooking()]
     ico_model1_allocation_whole_schedule(lessons2, classrooms2, gangs2, metrics2, 2015)
 
