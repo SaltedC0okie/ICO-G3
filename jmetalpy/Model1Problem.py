@@ -37,10 +37,11 @@ class Model1Problem(BinaryProblem):
         self.num_bits_slots = int(math.log(self.num_slots, 2) + 1)
 
     def evaluate(self, solution: BinaryProblem):
+        handle_everything = Model1Handler(self.lessons, self.classrooms, self.gangs, self.num_slots, solution).handle_gangs_everything()
         for i, metric in enumerate(self.metrics):
             # for j in created_schedule:
             #    metric.calculate(j[0], j[1])
-            metric.calculate(Model1Handler(self.lessons, self.classrooms, self.gangs, self.num_slots, solution))
+            metric.calculate(handle_everything)
             solution.objectives[i] = metric.get_percentage()
             metric.reset_metric()
 
