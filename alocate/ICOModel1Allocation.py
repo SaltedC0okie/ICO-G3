@@ -13,6 +13,7 @@ from jmetal.util.termination_criterion import StoppingByEvaluations
 from alocate.Model1Handler import bool_list_to_timeslot, bool_list_to_int
 from alocate.Progress import Progress
 from file_manager.Manipulate_Documents import Manipulate_Documents
+from jmetalpy.ICOMutation import ICOMutation
 from jmetalpy.Model1Problem import Model1Problem, Model1Handler
 from metrics.Metric import *
 
@@ -79,7 +80,7 @@ from metrics.Metric import *
 #         pass
 
 
-def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs: dict, metrics: list, year: int, progress: Progress = None):
+def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs: dict, metrics: list, progress: Progress = None):
 
     values = set()
     for lesson in lessons:
@@ -91,7 +92,9 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
 
     #print(f"busiest week: {busiest_week}")
 
-    problem = Model1Problem(lessons, classrooms, gangs, len(values), metrics)
+    num_slots = len(values)*160
+
+    problem = Model1Problem(lessons, classrooms, gangs, num_slots, metrics)
 
     #algorithm = MOEAD(problem=problem,
     #                 population_size=300,
@@ -105,13 +108,18 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
     #                 termination_criterion=StoppingByEvaluations(50)
     #                 )
 
+    num_bits_classroom = int(math.log(len(classrooms), 2) + 1)
+
     algorithm = NSGAII(
                     problem=problem,
                     population_size=100,
                     offspring_population_size=100,
-                    mutation=BitFlipMutation(probability=1.0 / problem.number_of_variables),  # (probability=1.0 / problem.number_of_variables),
-                    crossover=SPXCrossover(probability=1.0 / problem.number_of_variables),
-                    termination_criterion=StoppingByEvaluations(max_evaluations=10),
+                    mutation=ICOMutation(probability=0.1,
+                                         classrooms_length=len(classrooms),
+                                         num_bits_classroom=num_bits_classroom,
+                                         num_slots=num_slots),
+                    crossover=SPXCrossover(probability=0.8),
+                    termination_criterion=StoppingByEvaluations(max_evaluations=2),
                     population_evaluator=SparkEvaluator(processes=12)
                 )
 
@@ -138,7 +146,7 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
         for i in range(len(solution.objectives)):
             print(f"{metrics[i].name}- {solution.objectives[i]}")
 
-    #return make_lessons30(one_solution, lessons, classrooms), one_solution
+    return make_lessons30(one_solution, lessons, classrooms), one_solution
 
 
 def make_lessons30(solution1: BinarySolution, lessons1, classrooms1):

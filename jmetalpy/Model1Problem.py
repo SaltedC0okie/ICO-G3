@@ -44,7 +44,7 @@ class Model1Problem(BinaryProblem):
             solution.objectives[i] = metric.get_percentage()
             metric.reset_metric()
 
-        #self.__evaluate_constraints(solution)
+        self.__evaluate_constraints(solution)
 
         return solution
 
@@ -68,11 +68,12 @@ class Model1Problem(BinaryProblem):
 
     def create_solution(self) -> BinarySolution:
         new_solution = BinarySolution(self.number_of_variables,
-                                      self.number_of_objectives)  # No clue about lower and upper
+                                      self.number_of_objectives,
+                                      self.number_of_constraints)
         new_solution.variables = []
         for i in range(self.number_of_variables):
             bitset = [True if random.random() < 0.5 else False for b in range(self.num_bits_classroom)]
-            bitset.extend([True if random.random() < 0.5 else False for b in range(self.num_bits_classroom)])
+            bitset.extend([True if random.random() < 0.5 else False for b in range(self.num_bits_slots)])
             new_solution.variables.append(bitset)
         return new_solution
 

@@ -3,8 +3,11 @@ import time
 
 import csv
 
+from jmetal.core.solution import BinarySolution
+
 from Timeslot.TimeSlot import TimeSlot
 from alocate import Algorithm_Utils
+from alocate.Model1Handler import Model1Handler
 from alocate.Progress import Progress
 from alocate.simple_allocation import simple_allocation
 from alocate.weekly_allocation import weekly_allocation
@@ -19,6 +22,8 @@ import threading
 from typing import List
 import datetime
 
+from metrics.Metric import RoomlessLessons, Overbooking, BadClassroom, Gaps, RoomMovements, ClassroomInconsistency, \
+    LessonInconsistency, GangLessonVolume, ClassroomCollisions
 
 
 class Experiments:
@@ -250,28 +255,6 @@ def get_tuplo():
     return (1, 2)
 
 
-#e = Experiments()
-#e.test()
-
-def sync_test():
-    lock = threading.Lock()
-    x = threading.Thread(target=do_thing, args=(lock,))
-    y = threading.Thread(target=do_thing, args=(lock,))
-    x.start()
-    y.start()
-    x.join()
-    y.join()
-    print(cena)
-
-
-def do_thing(lock):
-    with lock:
-        print("Thread: ", threading.get_ident())
-        time.sleep(2)
-        global cena
-        cena = threading.get_ident()
-
-#sync_test()
 
 def atest_thing():
     md = Manipulate_Documents()
@@ -284,9 +267,31 @@ def atest_thing():
     count = Algorithm_Utils.check_for_collisions(a_weekly)
     print(count)
 
+def test_speed_handler():
+    md = Manipulate_Documents(1)
+    headers = ["Degree", "Subject", "Shift", "Grade", "Enrolled", "Day_Week", "Starts", "Ends", "Day", "Requested_Char",
+               "Classroom", "Capacity", "Actual_Char"]
+
+    s_headers = ["Course", "Subject", "Shift", "Class", "Enrolled", "Week", "Duration",
+                 "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
+    order = [0, 1, 2, 3, 4, 5, 6, 7]
+
+    lessons2, gangs2 = md.import_lessons_and_gangs2("../input_documents/Exemplo_de_horario_primeiro_semestre_ICO.csv",
+                                                    order, ["MM", "DD", "YYYY"])
+    classrooms2 = md.import_classrooms2()
+
+    metrics2 = [RoomlessLessons(), Overbooking(), BadClassroom(), Gaps(), RoomMovements(), ClassroomInconsistency(),
+                ClassroomCollisions(), GangLessonVolume(), LessonInconsistency()]
+    num_var = len(lessons2)
+    new_solution = BinarySolution(num_var,
+                                  num_var)  # No clue about lower and upper
+    new_solution.variables = []
+    for i in range(num_var):
+        bitset = [True if random.random() < 0.5 else False for b in range(self.num_bits_classroom)]
+        bitset.extend([True if random.random() < 0.5 else False for b in range(self.num_bits_classroom)])
+        new_solution.variables.append(bitset)
+
+    handler = Model1Handler(lessons2, classrooms2, gangs2, num_slots, new_solution)
+
 #test_thing()
-
-a = {1}
-
-print(a)
 
