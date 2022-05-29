@@ -97,6 +97,9 @@ class Overbooking(Metric):
             else:
                 self.value.append(0)
 
+    def get_total_metric_value(self):
+        return sum(self.value)
+
     def get_percentage(self):
         if len(self.value) == 0:
             return 0
@@ -130,6 +133,9 @@ class Underbooking(Metric):
                 self.value.append(lesson.number_of_enrolled_students / classroom.normal_capacity)
             else:
                 self.value.append(0)
+
+    def get_total_metric_value(self):
+        return sum(self.value)
 
     def get_percentage(self):
         return sum(self.value) / len(self.value)
@@ -230,6 +236,9 @@ class Gaps(Metric):
         else:
             return 0
 
+    def get_total_metric_value(self):
+        return sum([e for e in self.value])
+
     def get_percentage(self):
         norm = [(float(i) - min(self.value)) / (max(self.value) - min(self.value)) for i in self.value]
         return sum([e for e in norm]) / len(norm)
@@ -291,6 +300,9 @@ class RoomMovements(Metric):
 
             self.value.append((movements, possible_movements))
 
+    def get_total_metric_value(self):
+        return sum([m[0] for m in self.value])
+
     def get_percentage(self):
         return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
 
@@ -348,6 +360,9 @@ class BuildingMovements(Metric):
                     possible_movements += 1
             self.value.append((movements, possible_movements))
 
+    def get_total_metric_value(self):
+        return sum([m[0] for m in self.value])
+
     def get_percentage(self):
         return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
 
@@ -395,6 +410,8 @@ class ClassroomInconsistency(Metric):
             for c, pc in dict_subject.values():
                 self.value.append((len(c), pc))
 
+    def get_total_metric_value(self):
+        return sum([m[0] for m in self.value])
 
     def get_percentage(self):
         return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
@@ -444,6 +461,9 @@ class ClassroomCollisions(Metric):
         except AttributeError:
             self.value = -1
             self.total = 1
+
+    def get_total_metric_value(self):
+        return self.value
 
     def get_percentage(self):
         if self.value == -1:
@@ -511,8 +531,8 @@ class GangLessonVolume(Metric):
             total_time += int(duration_str[0]) + int(duration_str[1]) / 60
         return total_time
 
-    # def get_total_metric_value(self):
-    #     return sum([m for m in self.value]) / len(self.value)
+    def get_total_metric_value(self):
+        return sum([m for m in self.value])
 
     # TODO - find the best way to get the percentage
     def get_percentage(self):
@@ -612,6 +632,9 @@ class GangLessonDistribution(Metric):
         else:
             return bad_distribution / total_distribution
 
+    def get_total_metric_value(self):
+        return sum([m for m in self.value])
+
     def get_percentage(self):
         return sum([m for m in self.value]) / len(self.value)
 
@@ -659,7 +682,9 @@ class LessonInconsistency(Metric):
 
             for ts, pts in dict_subject.values():
                 self.value.append((len(ts), pts))
-        print(sum([m[0] for m in self.value]) / sum([m[1] for m in self.value]))
+
+    def get_total_metric_value(self):
+        return sum([m[0] for m in self.value])
 
     def get_percentage(self):
         return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
