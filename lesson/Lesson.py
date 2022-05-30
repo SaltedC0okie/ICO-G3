@@ -1,23 +1,22 @@
+from Gang.Gang import Gang
 from classroom.Classroom import Classroom
 import re
 
 
 class Lesson:
 
-    def __init__(self, dateformat_list: list, course: str, subject: str, shift: str, gang: str, number_of_enrolled_students: int,
-                 week_day: str, start: str, end: str, day: str, requested_characteristics: str, ):
+    def __init__(self, dateformat_list: list, course: str, subject: str, shift: str, gangs: list, number_of_enrolled_students: int,
+                 week: str, duration: str, requested_characteristics: str):
         self.course = course
         self.subject = subject
         self.shift = shift
-        self.gang = gang
+        self.gang_list = gangs
         self.number_of_enrolled_students = number_of_enrolled_students
-        self.week_day = week_day
-        self.start = start
-        self.end = end
-        self.day = day
+        self.week = week
+        self.duration = duration
         self.requested_characteristics = requested_characteristics
         self.dateformat_list = dateformat_list
-        self.time_blocks = self.generate_time_blocks()
+        self.assignment = None  # (Classroom, TimeSlot)
 
     def get_requested_characteristics(self) -> str:
         '''
@@ -38,9 +37,10 @@ class Lesson:
         Returns a list of strings with the correct order and informations to use on the export function in the Manipulate_Documents class.
         :return:
         """
-        return [self.course, self.subject, self.shift, self.gang, str(self.number_of_enrolled_students),
-                self.week_day, self.start, self.end, self.day, self.requested_characteristics]
+        return [self.course, self.subject, self.shift,  ",".join([g.name for g in self.gang_list]), str(self.number_of_enrolled_students),
+                self.week, self.duration, self.requested_characteristics]
 
+    #TODO
     def get_row_str(self) -> str:
         """
         Returns a list of strings with the correct order and informations to use on the export function in the Manipulate_Documents class.
@@ -137,9 +137,12 @@ class Lesson:
 
         return split[0], time_split[0], time_split[1]
 
+    def has_assignment(self):
+        return self.assignment is not None
+
     def __str__(self):
         return "<" + self.subject + " | " + str(
-            self.number_of_enrolled_students) + " | " + self.day + " | " + self.start + "-" + self.end + ">"
+            self.number_of_enrolled_students) + " | " + str(self.number_of_enrolled_students) + ">"
 
     def __repr__(self):
         return str(self)

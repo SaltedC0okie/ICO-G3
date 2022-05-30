@@ -5,7 +5,7 @@ function sleep(ms) {
 var percent = 0;
 
 async function say_cenas() {
-    while (true) {
+    while (false) { // while (true) {
         await sleep(500);
         check_progess();
         update_progress();

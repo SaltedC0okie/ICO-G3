@@ -3,18 +3,27 @@ import time
 
 import csv
 
+from jmetal.core.solution import BinarySolution
+
+from Timeslot.TimeSlot import TimeSlot
 from alocate import Algorithm_Utils
+from alocate.Model1Handler import Model1Handler, bool_list_to_int
 from alocate.Progress import Progress
 from alocate.simple_allocation import simple_allocation
 from alocate.weekly_allocation import weekly_allocation
 from metrics import Metric
-from metrics.Metric import Gaps, UsedRooms, RoomlessLessons, Overbooking, Underbooking, BadClassroom, RoomMovements, \
-    BuildingMovements, ClassroomInconsistency
+#from metrics.Metric import Gaps, UsedRooms, RoomlessLessons, Overbooking, Underbooking, BadClassroom, RoomMovements, \
+#    BuildingMovements, ClassroomInconsistency
 from classroom.Classroom import Classroom
 from file_manager.Manipulate_Documents import Manipulate_Documents
 from lesson.Lesson import Lesson
 import random
 import threading
+from typing import List
+import datetime
+
+from metrics.Metric import RoomlessLessons, Overbooking, BadClassroom, Gaps, RoomMovements, ClassroomInconsistency, \
+    LessonInconsistency, GangLessonVolume, ClassroomCollisions
 
 
 class Experiments:
@@ -246,32 +255,8 @@ def get_tuplo():
     return (1, 2)
 
 
-#e = Experiments()
-#e.test()
 
-cena = 0
-
-def sync_test():
-    lock = threading.Lock()
-    x = threading.Thread(target=do_thing, args=(lock,))
-    y = threading.Thread(target=do_thing, args=(lock,))
-    x.start()
-    y.start()
-    x.join()
-    y.join()
-    print(cena)
-
-
-def do_thing(lock):
-    with lock:
-        print("Thread: ", threading.get_ident())
-        time.sleep(2)
-        global cena
-        cena = threading.get_ident()
-
-#sync_test()
-
-def test_thing():
+def atest_thing():
     md = Manipulate_Documents()
     classrooms = md.import_classrooms()
     schedule = md.import_schedule_documents("Exemplo_de_horario_primeiro_semestre.csv", False)
@@ -282,4 +267,54 @@ def test_thing():
     count = Algorithm_Utils.check_for_collisions(a_weekly)
     print(count)
 
+def test_speed_handler():
+    md = Manipulate_Documents(1)
+    headers = ["Degree", "Subject", "Shift", "Grade", "Enrolled", "Day_Week", "Starts", "Ends", "Day", "Requested_Char",
+               "Classroom", "Capacity", "Actual_Char"]
+
+    s_headers = ["Course", "Subject", "Shift", "Class", "Enrolled", "Week", "Duration",
+                 "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
+    order = [0, 1, 2, 3, 4, 5, 6, 7]
+
+    lessons2, gangs2 = md.import_lessons_and_gangs2("../input_documents/Exemplo_de_horario_primeiro_semestre_ICO.csv",
+                                                    order, ["MM", "DD", "YYYY"])
+    classrooms2 = md.import_classrooms2()
+
+    metrics2 = [RoomlessLessons(), Overbooking(), BadClassroom(), Gaps(), RoomMovements(), ClassroomInconsistency(),
+                ClassroomCollisions(), GangLessonVolume(), LessonInconsistency()]
+    num_var = len(lessons2)
+    new_solution = BinarySolution(num_var,
+                                  num_var)  # No clue about lower and upper
+    new_solution.variables = []
+    for i in range(num_var):
+        bitset = [True if random.random() < 0.5 else False for b in range(self.num_bits_classroom)]
+        bitset.extend([True if random.random() < 0.5 else False for b in range(self.num_bits_classroom)])
+        new_solution.variables.append(bitset)
+
+    handler = Model1Handler(lessons2, classrooms2, gangs2, num_slots, new_solution)
+
 #test_thing()
+
+def bool_list_to_timeslot(bool_list: List[bool], week: int = 0):
+    num = bool_list_to_int(bool_list)
+    hours = [(8, 00), (9, 30), (11, 0), (13, 0), (14, 30), (16, 0)]
+
+    if week == 0:
+        week = int(num / 30)  # 5*6
+        weekday = int(num / 6) - week * 5
+    else:
+        weekday = int(num / 6)
+
+    hour_inc, half_hour = hours[num % 6]
+
+    # date_1 = datetime.datetime.strptime(f"{init_month}/{init_day}/{init_year}", "%m/%d/%Y")
+    # end_date = date_1 + datetime.timedelta(days=day_inc)
+
+    slot = TimeSlot(week, weekday, hour_inc, half_hour)
+
+    return slot
+
+a = [True, True, True, True, True, True]
+
+print(bool_list_to_timeslot(a))
+
