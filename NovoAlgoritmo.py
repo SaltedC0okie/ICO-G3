@@ -1,3 +1,4 @@
+import math
 import random
 import time
 
@@ -9,7 +10,7 @@ from jmetal.util.termination_criterion import StoppingByEvaluations
 
 from Gang.Gang import Gang
 from Timeslot.TimeSlot import TimeSlot
-from alocate.Model1Handler import Model1Handler
+from alocate.Model1Handler import Model1Handler, bool_list_to_int, bool_list_to_timeslot
 from file_manager.Manipulate_Documents import Manipulate_Documents
 import statistics
 
@@ -36,6 +37,25 @@ def filter_busiest_week(gang_lessons: list):
 
     return busiest_week_lessons
 
+
+def addAssignment(gang_list_of_lessons, classrooms, solution):
+    num_bits_classroom = int(math.log(len(classrooms), 2) + 1)
+
+    for i, assignment in enumerate(solution.variables):
+        lesson = gang_list_of_lessons[i]
+        if num_slots > bool_list_to_int(assignment[num_bits_classroom:]):
+            timeslot = bool_list_to_timeslot(assignment[num_bits_classroom:], lesson.week)
+        else:
+            timeslot = None
+
+        if len(classrooms) > bool_list_to_int(assignment[:num_bits_classroom]):
+            classroom = classrooms[bool_list_to_int(assignment[:num_bits_classroom])]
+        else:
+            classroom = None
+        if not lesson.has_assignment():
+            lesson.assignment = (classroom, timeslot)
+
+
 # def repeat(g: Gang, alg_lessons: list, num_of_weeks: int):
 #     done_lessons = {}
 #     week = alg_lessons[0].week
@@ -60,7 +80,7 @@ if __name__ == '__main__':
     for lesson in lessons:
         weeks.add(lesson.week)
     num_of_weeks = len(weeks)
-    num_slots = 30*num_of_weeks  # 6 slots diários vezes 5 dias
+    num_slots = 30 * num_of_weeks  # 6 slots diários vezes 5 dias
     classroom_slots = set()
 
     # num_lessons_list = []
@@ -108,8 +128,10 @@ if __name__ == '__main__':
 
         metric_percents = []
         for solution in front:
+            # TODO - ESCREVI TODO MAS JÁ ESTÁ FEITO
+            addAssignment(gang.lessons, classrooms, solution)
             sol_metrics = []
-            handler = Model1Handler(aquele_gang.lessons, classrooms, gangs, num_slots, solution)
+            handler = Model1Handler(gang.lessons, classrooms, gangs, num_slots, solution)
             tuple_dicts = handler.handle_gangs_everything()
             for metric in metrics:
                 metric.reset_metric()
@@ -122,7 +144,6 @@ if __name__ == '__main__':
             print("Objectives:")
             for i in range(len(percents)):
                 print(f"{metrics[i].name}- {percents[i]}")
-
 
     # one_solution = front[int(len(front)/2)]
     # print(one_solution.objectives)
