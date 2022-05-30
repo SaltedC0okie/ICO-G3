@@ -9,6 +9,8 @@ from operator import itemgetter
 
 from django.http import HttpResponse, FileResponse
 import time
+
+from NovoAlgoritmo import novo_algoritmo
 from alocate import Algorithm_Utils
 from alocate.ICOModel1Allocation import ico_model1_allocation_whole_schedule
 from alocate.Model1Handler import Model1Handler
@@ -34,6 +36,8 @@ global schedule_simple
 global schedule_overbooking
 global schedule_weekly
 global progress
+global mp
+global dict_lessons_30
 
 
 def index(request):
@@ -70,6 +74,38 @@ def progress_bar(request):
         return JsonResponse({'percent': '0', 'error': '1'})
 
 
+def lessons_to_lessons30(lesson_list):
+    dict_lesson30 = {}
+    for lesson in lesson_list:
+        if lesson.assignment[1] in dict_lesson30.keys():
+            dict_lesson30[lesson.assignment[1]].append((lesson, lesson.assignment[0]))
+        else:
+            dict_lesson30[lesson.assignment[1]] = [(lesson, lesson.assignment[0])]
+    return dict_lesson30
+
+def show_metrics_results(gangs, lessons, metrics):
+    # Determine Mémétrics:
+
+    # Make dict with lesson, timeslot and classroom
+    lesson_timeslot_classroom_dict = {lesson: (lesson.assignment[1], lesson.assignment[0]) for lesson in lessons}
+
+    # Make tuple with both dicts
+    tuple_dicts = (gangs, lesson_timeslot_classroom_dict)
+
+    # Evaluate metrics for the entire algorithm
+    metric_percents = []
+    for metric in metrics:
+        metric.reset_metric()
+        metric.calculate(tuple_dicts)
+        metric_percents.append(metric.get_percentage())
+
+    # Print the metrics
+    print("")
+    print("Objectives:")
+    for i in range(len(metric_percents)):
+        print(f"{metrics[i].name}- {metric_percents[i]}")
+
+
 def results(request):
     if request.method == 'POST' and request.FILES['schedulefilename']:
         s_headers = ["Course", "Subject", "Shift", "Class", "Enrolled", "Week", "Duration",
@@ -79,12 +115,12 @@ def results(request):
             order.append(int(request.POST.get(h)))
         global progress
         progress = Progress()
+        global mp
         mp = Manipulate_Documents(request.session["starting_day"])
         mySchedule = request.FILES['schedulefilename']
         mySchedule.seek(0)
         encoding = request.POST.get('encoding')
         dateformat_list = re.split('\W+', request.POST.get('dateformat'))
-
         lesson_list, gang_dict = mp.import_lessons_and_gangs(mySchedule, order, dateformat_list, encoding)
         metrics_chosen = request.session['metrics']
 
@@ -137,110 +173,23 @@ def results(request):
         else:
             classrooms = mp.import_classrooms()
 
-        # count = Algorithm_Utils.check_for_collisions(a_jmp)
-        #
-        # progress.set_total_tasks_metrics(len(metrics)*3-1)
-        #
-        # schedule_s = []
-        # for sublist in a_simple.values():
-        #     for item in sublist:
-        #         schedule_s.append(item)
-        #
-        # for m in metrics:
-        #     if m.name == "ClassroomCollisions":
-        #         m.calculate(a_simple)
-        #     else:
-        #         m.calculate(schedule_s)
-        #     #print(m.name, ": ", round(m.get_percentage() * 100, 2), "%")
-        #     results_metrics["Metric"].append(m.name)
-        #     results_metrics["Algorithm - Simple"].append(str(round(m.get_percentage() * 100, 2)) + "%")
-        #     m.reset_metric()
-        #     progress.inc_cur_tasks_metrics()
-        #
-        # schedule_andre = []
-        # for sublist in a_weekly.values():
-        #     for item in sublist:
-        #         schedule_andre.append(item)
-        #
-        # for m in metrics:
-        #     if m.name == "ClassroomCollisions":
-        #         m.calculate(a_weekly)
-        #     else:
-        #         m.calculate(schedule_andre)
-        #     results_metrics["Metric"].append(m.name)
-        #     results_metrics["Algorithm - Weekly"].append(str(round(m.get_percentage() * 100, 2)) + "%")
-        #     m.reset_metric()
-        #
-        #     progress.inc_cur_tasks_metrics()
-        #
-        # schedule_nuno = []
-        # for sublist in a_jmp.values():
-        #     for item in sublist:
-        #         schedule_nuno.append(item)
-        #
-        # len_metrics = len(metrics)
-        # for i, m in enumerate(metrics):
-        #     if m.name == "ClassroomCollisions":
-        #         m.calculate(a_jmp)
-        #     else:
-        #         m.calculate(schedule_nuno)
-        #     results_metrics["Metric"].append(m.name)
-        #     results_metrics["Algorithm - Overbooking"].append(str(round(m.get_percentage() * 100, 2)) + "%")
-        #     m.reset_metric()
-        #     if i == len_metrics - 2:
-        #         progress.inc_cur_tasks_metrics()
-        #     if i != len_metrics - 1:
-        #         progress.inc_cur_tasks_metrics()
-        #
-        # iterator = len(results_metrics["Algorithm - Simple"])
-        # i = 0
-        # final_dict = []
-        # while i < iterator:
-        #     tmp_dict = {}
-        #     for key, values in results_metrics.items():
-        #         # print(tmp_dict[key], "inside for", values[i])
-        #         try:
-        #             tmp_dict[key] = values[i]
-        #         except Exception:
-        #             print("didn't insert the value")
-        #
-        #     final_dict.append(tmp_dict)
-        #     i += 1
-        # results_metrics = final_dict
-        #
-        # # a_simple represents the schedule from the simple algorithm
-        # # schedule_nuno represents the schedule from the overbooking algorithm
-        # global schedule_simple
-        # global schedule_overbooking
-        # global schedule_weekly
-        # schedule_simple = a_simple
-        # schedule_overbooking = schedule_nuno
-        # schedule_weekly = schedule_andre
+        novo_algoritmo(lesson_list, gang_dict, classrooms, metrics)
+        global dict_lessons_30
+        dict_lessons_30 = lessons_to_lessons30(lesson_list)
 
-        # table columns
+        lesson_timeslot_classroom_dict = {lesson: (lesson.assignment[1], lesson.assignment[0]) for lesson in
+                                          lesson_list}
 
-        solutions = ico_model1_allocation_whole_schedule(lesson_list, classrooms, gang_dict, metrics)
+        # Make tuple with both dicts
+        tuple_dicts = (gang_dict, lesson_timeslot_classroom_dict)
 
-        # for solution in solutions:
-        #     handle_everything = Model1Handler(lessons, self.classrooms, self.gangs, self.num_slots,
-        #                                       solution).handle_gangs_everything()
-        #     for i, metric in enumerate(self.metrics):
-        #         # for j in created_schedule:
-        #         #    metric.calculate(j[0], j[1])
-        #         metric.calculate(handle_everything)
-        #         solution.objectives[i] = metric.get_total_metric_value()
-        #         metric.reset_metric()
-
-        headers = {"Metric": "Metrics"}
-        results_metrics = {"Metric": []}
+        headers = {"Metric": "Metrics", "Result": "Result"}
+        results_metrics = {"Metric": [], "Result": []}
         for metric in metrics:
+            metric.reset_metric()
+            metric.calculate(tuple_dicts)
             results_metrics["Metric"].append(metric.name)
-
-        for i in range(len(solutions)):
-            headers["solution" + str(i)] = "solution" + str(i)
-            results_metrics["solution" + str(i)] = []
-            for metric_value in solutions[i].objectives:
-                results_metrics["solution" + str(i)].append(str(round(metric_value * 100, 2)) + "%")
+            results_metrics["Result"].append(str(round(metric.get_percentage() * 100, 2)) + "%")
 
         iterator = len(metrics)
         i = 0
@@ -248,7 +197,6 @@ def results(request):
         while i < iterator:
             tmp_dict = {}
             for key, values in results_metrics.items():
-                # print(tmp_dict[key], "inside for", values[i])
                 try:
                     tmp_dict[key] = values[i]
                 except Exception:
@@ -259,15 +207,15 @@ def results(request):
         results_metrics = final_dict
 
         # content of evaluation table
-        context = [{"Metric": "1", "Algorithm - 1": "97.5%", "Algorithm - 2": "50%"},
-                   {"Metric": "2", "Algorithm - 1": "10.5%", "Algorithm - 2": "99.7%"}]
-        context = json.dumps(context)
-        results_metrics = json.dumps(results_metrics)
-        # content of all algorithms to show on page, append to render
-        print(f"headers: {headers}")
-        print(f"results_metrics: {results_metrics}")
+        # context = [{"Metric": "1", "Algorithm - 1": "97.5%", "Algorithm - 2": "50%"},
+        #            {"Metric": "2", "Algorithm - 1": "10.5%", "Algorithm - 2": "99.7%"}]
+        # context = json.dumps(context)
+        # results_metrics = json.dumps(results_metrics)
+        # # content of all algorithms to show on page, append to render
+        # print(f"headers: {headers}")
+        # print(f"results_metrics: {results_metrics}")
         return render(request, 'results.html',
-                      {"context": context, "table_headers": headers, "results_metrics": results_metrics})
+                      {"table_headers": headers, "results_metrics": results_metrics})
 
     return render(request, 'index.html')
 
@@ -276,18 +224,12 @@ def download_file(request):
     # fill these variables with real values
     # fl_path = "Output_Documents/"
     # filename = 'Output_Schedule.csv'
-    global schedule_simple
-    global schedule_overbooking
-    global schedule_weekly
+    global dict_lessons_30
+    global mp
 
     if request.method == 'POST':
         if request.POST.get("b") == "simple_algorithm":
-            lines = Manipulate_Documents().export_schedule_str(schedule_simple)
-        if request.POST.get("b") == "weekly_algorithm":
-            print("")
-            # lines = Manipulate_Documents().export_schedule_str(schedule_weekly)
-        if request.POST.get("b") == "overbooking_algorithm":
-            lines = Manipulate_Documents().export_schedule_str(schedule_overbooking)
+            lines = mp.export_schedule_dict_ts_lc(dict_lessons_30)
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Type'] = 'text/csv'

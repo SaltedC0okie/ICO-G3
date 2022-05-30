@@ -75,14 +75,14 @@ def addAssignments(gang_list_of_lessons, classrooms, solution, num_slots):
             lesson.assignment = (classroom, timeslot)
 
 
-def novo_algoritmo():
+def novo_algoritmo(lessons, gangs, classrooms, metrics):
     # Imports and variable declarations
-    md = Manipulate_Documents(1)
-    order = [0, 1, 2, 3, 4, 5, 6, 7]
-    lessons, gangs = md.import_lessons_and_gangs2("input_documents/Exemplo_de_horario_primeiro_semestre_ICO.csv",
-                                                  order, ["MM", "DD", "YYYY"])
-    classrooms = md.import_classrooms2("input_classrooms/Salas.csv")
-    metrics = [LessonCollisions(), Overbooking(), ClassroomCollisions(), RoomMovements(), BadClassroom()]
+    # md = Manipulate_Documents(1)
+    # order = [0, 1, 2, 3, 4, 5, 6, 7]
+    # lessons, gangs = md.import_lessons_and_gangs2("input_documents/Exemplo_de_horario_primeiro_semestre_ICO.csv",
+    #                                               order, ["MM", "DD", "YYYY"])
+    # classrooms = md.import_classrooms2("input_classrooms/Salas.csv")
+    # metrics = [LessonCollisions(), Overbooking(), ClassroomCollisions(), RoomMovements(), BadClassroom()]
     weeks = set()
     for lesson in lessons:
         weeks.add(lesson.week)
@@ -108,7 +108,7 @@ def novo_algoritmo():
                                  num_slots=num_slots,
                                  classroom_slots=classroom_slots),
             crossover=SPXCrossover(probability=0.8),
-            termination_criterion=StoppingByEvaluations(max_evaluations=10),
+            termination_criterion=StoppingByEvaluations(max_evaluations=1),
         )
         print("gonna run")
         start = time.time()
@@ -131,26 +131,29 @@ def novo_algoritmo():
         for lesson in gang.lessons:
             classroom_slots.add(lesson.assignment)
 
-    # Determine Métrics:
+    ## Determine Mémétrics:
+#
+    ## Make dict with lesson, timeslot and classroom
+    #lesson_timeslot_classroom_dict = {lesson: (lesson.assignment[1], lesson.assignment[0]) for lesson in lessons}
+#
+    ## Make tuple with both dicts
+    #tuple_dicts = (gangs, lesson_timeslot_classroom_dict)
+#
+    ## Evaluate metrics for the entire algorithm
+    #metric_percents = []
+    #for metric in metrics:
+    #    metric.reset_metric()
+    #    metric.calculate(tuple_dicts)
+    #    metric_percents.append(metric.get_percentage())
 
-    # Make dict with lesson, timeslot and classroom
-    lesson_timeslot_classroom_dict = {lesson: (lesson.assignment[1], lesson.assignment[0]) for lesson in lessons}
-
-    # Make tuple with both dicts
-    tuple_dicts = (gangs, lesson_timeslot_classroom_dict)
-
-    # Evaluate metrics for the entire algorithm
-    metric_percents = []
-    for metric in metrics:
-        metric.reset_metric()
-        metric.calculate(tuple_dicts)
-        metric_percents.append(metric.get_percentage())
-
+    """
     # Print the metrics
     print("")
     print("Objectives:")
     for i in range(len(metric_percents)):
         print(f"{metrics[i].name}- {metric_percents[i]}")
+    """
+
 
     # for lesson, t in lesson_timeslot_classroom_dict.items():
     #     print(f"{lesson} -> ({t[0]}, {t[1]})")
