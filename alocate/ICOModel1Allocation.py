@@ -123,19 +123,19 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
     #     termination_criterion=StoppingByEvaluations(max_evaluations=100)
     # )
 
-    algorithm = NSGAII(
-                    problem=problem,
-                    population_size=100,
-                    offspring_population_size=100,
-                    #mutation=BitFlipMutation(0.1),
-                    mutation=ICOMutation(probability=1/len(lessons),
-                                         classrooms_length=len(classrooms),
-                                         num_bits_classroom=num_bits_classroom,
-                                         num_slots=num_slots),
-                    crossover=SPXCrossover(probability=0.8),
-                    termination_criterion=StoppingByEvaluations(max_evaluations=200),
-                    population_evaluator=SparkEvaluator(processes=12)
-                )
+    # algorithm = NSGAII(
+    #                 problem=problem,
+    #                 population_size=100,
+    #                 offspring_population_size=100,
+    #                 #mutation=BitFlipMutation(0.1),
+    #                 mutation=ICOMutation(probability=1/len(lessons),
+    #                                      classrooms_length=len(classrooms),
+    #                                      num_bits_classroom=num_bits_classroom,
+    #                                      num_slots=num_slots),
+    #                 crossover=SPXCrossover(probability=0.8),
+    #                 termination_criterion=StoppingByEvaluations(max_evaluations=200),
+    #                 population_evaluator=SparkEvaluator(processes=12)
+    #             )
     # algorithm = NSGAIII(
     #                 problem=problem,
     #                 population_size=100,

@@ -444,8 +444,8 @@ class Manipulate_Documents:
         # TS: Week, Weekday, Hour, Minute
         """
         rows = []
-        header = "Curso,Unidade de execução,Turno,Turma,Inscritos no turno,Dia da Semana,Início,Fim,Dia," \
-                 "Características da sala pedida para a aula,Sala de aula,Lotação,Características reais da sala"
+        header = "Curso;Unidade de execução;Turno;Turma;Inscritos no turno;Dia da Semana;Início;Fim;Dia;" \
+                 "Características da sala pedida para a aula;Sala de aula;Lotação;Características reais da sala"
         rows.append(header)
 
         # calculate the day with a function that receives the week, day of the week, starting day of the semester

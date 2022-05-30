@@ -26,11 +26,16 @@ class ICOMutation(Mutation[BinarySolution]):
                 rand = random.random()
                 if rand <= self.probability:
                     solution.variables[i][j] = not solution.variables[i][j]
-                    if bool_list_to_int(solution.variables[i][:self.num_bits_classroom]) >= self.classrooms_length or \
-                       bool_list_to_int(solution.variables[i][self.num_bits_classroom:]) >= self.num_slots or \
+
+                    classroom_is_invalid = bool_list_to_int(solution.variables[i][:self.num_bits_classroom]) >= self.classrooms_length
+                    timeslot_is_invalid = bool_list_to_int(solution.variables[i][self.num_bits_classroom:]) >= self.num_slots
+                    # print(f"variables len: {len(solution.variables)}")
+                    # print(f"classrooms len: {len(self.classrooms)}")
+                    # print(f"solution classroom: {bool_list_to_int(solution.variables[i][:self.num_bits_classroom])}")
+                    if classroom_is_invalid or timeslot_is_invalid or \
                         (self.classrooms[bool_list_to_int(solution.variables[i][:self.num_bits_classroom])],
                          bool_list_to_timeslot(solution.variables[i][self.num_bits_classroom:])) in self.classroom_slots:
-                        print("REVERT")
+                        # print(f"classroom_slots len: {len(self.classroom_slots)}")
                         solution.variables[i][j] = not solution.variables[i][j]
 
         return solution

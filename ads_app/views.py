@@ -64,14 +64,15 @@ def data(request):
 
 
 def progress_bar(request):
-    if request.method == 'GET':
-        global progress
-        percent = progress.get_progress()
-        # print("Progress: ", percent, "%")
-        return JsonResponse({'percent': str(round(percent, 1)), 'error': '0'})
-    else:
-        print("\nNot get, kinda weird\n")
-        return JsonResponse({'percent': '0', 'error': '1'})
+    pass
+    # if request.method == 'GET':
+    #     global progress
+    #     percent = progress.get_progress()
+    #     # print("Progress: ", percent, "%")
+    #     return JsonResponse({'percent': str(round(percent, 1)), 'error': '0'})
+    # else:
+    #     print("\nNot get, kinda weird\n")
+    #     return JsonResponse({'percent': '0', 'error': '1'})
 
 
 def lessons_to_lessons30(lesson_list):

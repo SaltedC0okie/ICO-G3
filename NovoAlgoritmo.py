@@ -51,11 +51,22 @@ def filter_busiest_week(gang_lessons: list):
 #         if not exists:
 #             pass  # TODO Doesn't exist on busiest week, add naively
 
-def get_closest_solution(front: list):
-    sum_total = [sum(s.objectives) for s in front]
-    index_min = min(range(len(sum_total)), key=sum_total.__getitem__)
-    return front[index_min]
+# def get_closest_solution(front: list):
+#     sum_total = [sum(s.objectives) for s in front]
+#     index_min = min(range(len(sum_total)), key=sum_total.__getitem__)
+#     return front[index_min]
 
+def get_closest_solution(front: list):
+    total_sums = []
+    for sol in front:
+        sums = []
+        for i, objective in enumerate(sol.objectives):
+            sums.append(sum([objective - sol.objectives[j] for j in range(i+1, len(sol.objectives))]))
+
+        total_sums.append(sums)
+
+    index_min = min(range(len(total_sums)), key=total_sums.__getitem__)
+    return front[index_min]
 
 def addAssignments(gang_list_of_lessons, classrooms, solution, num_slots):
     num_bits_classroom = int(math.log(len(classrooms), 2) + 1)
@@ -76,24 +87,23 @@ def addAssignments(gang_list_of_lessons, classrooms, solution, num_slots):
 
 
 def novo_algoritmo(lessons, gangs, classrooms, metrics):
-    # Imports and variable declarations
-    # md = Manipulate_Documents(1)
-    # order = [0, 1, 2, 3, 4, 5, 6, 7]
-    # lessons, gangs = md.import_lessons_and_gangs2("input_documents/Exemplo_de_horario_primeiro_semestre_ICO.csv",
-    #                                               order, ["MM", "DD", "YYYY"])
-    # classrooms = md.import_classrooms2("input_classrooms/Salas.csv")
-    # metrics = [LessonCollisions(), Overbooking(), ClassroomCollisions(), RoomMovements(), BadClassroom()]
+
+    # Count number of weeks in semester
     weeks = set()
     for lesson in lessons:
         weeks.add(lesson.week)
     num_of_weeks = len(weeks)
     num_slots = 30 * num_of_weeks  # 6 slots diários vezes 5 dias
 
+    # Initializing variables for the loop by course class
     classroom_slots = set()
     iter = 0
+    len_gangs = len(gangs)
     for name, gang in gangs.items():
         iter += 1
-        # print(f"iter={iter}")
+        print(f"num: {iter} of {len_gangs}, New gang: ", gang.name)
+        print(f"num_of_lessons={len(gang.lessons)}")
+
         # Make problem and run alg
         gangs_weird = {name: gang}
         problem = Model1Problem(gang.lessons, classrooms, gangs_weird, num_slots, metrics)
@@ -108,7 +118,7 @@ def novo_algoritmo(lessons, gangs, classrooms, metrics):
                                  num_slots=num_slots,
                                  classroom_slots=classroom_slots),
             crossover=SPXCrossover(probability=0.8),
-            termination_criterion=StoppingByEvaluations(max_evaluations=1),
+            termination_criterion=StoppingByEvaluations(max_evaluations=100)
         )
         # print("gonna run")
         start = time.time()
