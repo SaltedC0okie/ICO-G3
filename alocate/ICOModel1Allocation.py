@@ -95,18 +95,6 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
 
     problem = Model1Problem(lessons, classrooms, gangs, num_slots, metrics)
 
-    # problem: Problem,
-    # population_size: int,
-    # mutation: Mutation,
-    # crossover: DifferentialEvolutionCrossover,
-    # aggregative_function: AggregativeFunction,
-    # neighbourhood_selection_probability: float,
-    # max_number_of_replaced_solutions: int,
-    # neighbor_size: int,
-    # weight_files_path: str,
-    # termination_criterion: TerminationCriterion = store.default_termination_criteria,
-    # population_generator: Generator = store.default_generator,
-    # population_evaluator: Evaluator = store.default_evaluator
     # algorithm = MOEAD(
     #     problem=problem,
     #     population_size=300,
@@ -123,19 +111,18 @@ def ico_model1_allocation_whole_schedule(lessons: list, classrooms: list, gangs:
     #     termination_criterion=StoppingByEvaluations(max_evaluations=100)
     # )
 
-    # algorithm = NSGAII(
-    #                 problem=problem,
-    #                 population_size=100,
-    #                 offspring_population_size=100,
-    #                 #mutation=BitFlipMutation(0.1),
-    #                 mutation=ICOMutation(probability=1/len(lessons),
-    #                                      classrooms_length=len(classrooms),
-    #                                      num_bits_classroom=num_bits_classroom,
-    #                                      num_slots=num_slots),
-    #                 crossover=SPXCrossover(probability=0.8),
-    #                 termination_criterion=StoppingByEvaluations(max_evaluations=200),
-    #                 population_evaluator=SparkEvaluator(processes=12)
-    #             )
+    algorithm = NSGAII(
+                    problem=problem,
+                    population_size=100,
+                    offspring_population_size=100,
+                    #mutation=BitFlipMutation(0.1),
+                    mutation=ICOMutation(probability=1/len(lessons),
+                                         classrooms_length=len(classrooms),
+                                         num_bits_classroom=num_bits_classroom,
+                                         num_slots=num_slots),
+                    crossover=SPXCrossover(probability=0.8),
+                    termination_criterion=StoppingByEvaluations(max_evaluations=200)
+                )
     # algorithm = NSGAIII(
     #                 problem=problem,
     #                 population_size=100,

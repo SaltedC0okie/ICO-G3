@@ -37,20 +37,6 @@ def filter_busiest_week(gang_lessons: list):
 
     return busiest_week_lessons
 
-
-# def repeat(g: Gang, alg_lessons: list, num_of_weeks: int):
-#     done_lessons = {}
-#     week = alg_lessons[0].week
-#     for lesson in g.lessons:
-#         exists = False
-#         for alg_lesson in alg_lessons:
-#             #if lessondone_lessons[] TODO
-#             if alg_lesson.subject == lesson.subject and alg_lesson:
-#                 pass
-#
-#         if not exists:
-#             pass  # TODO Doesn't exist on busiest week, add naively
-
 # def get_closest_solution(front: list):
 #     sum_total = [sum(s.objectives)/len(s.objectives) for s in front]
 #     index_min = min(range(len(sum_total)), key=sum_total.__getitem__)
