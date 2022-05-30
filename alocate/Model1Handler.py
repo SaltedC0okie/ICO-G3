@@ -31,7 +31,6 @@ def bool_list_to_timeslot(bool_list: List[bool], week: int = 0):
     #end_date = date_1 + datetime.timedelta(days=day_inc)
 
     slot = TimeSlot(week, weekday, hour_inc, half_hour)
-
     return slot
 
 
@@ -80,7 +79,7 @@ class Model1Handler(Handler):
         for i, assignment in enumerate(self.solution.variables):
             lesson = self.lessons[i]
             if self.num_slots > bool_list_to_int(assignment[self.num_bits_classroom:]):
-                timeslot = bool_list_to_timeslot(assignment[self.num_bits_classroom:], self.week)
+                timeslot = bool_list_to_timeslot(assignment[self.num_bits_classroom:])
             else:
                 timeslot = None
 

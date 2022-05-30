@@ -30,6 +30,7 @@ class ICOMutation(Mutation[BinarySolution]):
                        bool_list_to_int(solution.variables[i][self.num_bits_classroom:]) >= self.num_slots or \
                         (self.classrooms[bool_list_to_int(solution.variables[i][:self.num_bits_classroom])],
                          bool_list_to_timeslot(solution.variables[i][self.num_bits_classroom:])) in self.classroom_slots:
+                        print("REVERT")
                         solution.variables[i][j] = not solution.variables[i][j]
 
         return solution

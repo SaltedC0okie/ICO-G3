@@ -40,8 +40,12 @@ class Model1Problem(BinaryProblem):
         self.obj_labels = ['Sum', 'No. of Objects']
 
     def evaluate(self, solution: BinarySolution):
-        handle_everything = Model1Handler(self.lessons, self.classrooms, self.gangs, self.num_slots,
-                                          solution).handle_gangs_everything()
+        handle_everything = Model1Handler(self.lessons,
+                                          self.classrooms,
+                                          self.gangs,
+                                          self.num_slots,
+                                          solution
+                                          ).handle_gangs_everything()
         for i, metric in enumerate(self.metrics):
             # for j in created_schedule:
             #    metric.calculate(j[0], j[1])
