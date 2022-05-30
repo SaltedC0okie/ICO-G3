@@ -7,6 +7,7 @@ from jmetal.util.evaluator import SparkEvaluator
 from jmetal.util.solution import get_non_dominated_solutions
 from jmetal.util.termination_criterion import StoppingByEvaluations
 
+from Gang.Gang import Gang
 from Timeslot.TimeSlot import TimeSlot
 from alocate.Model1Handler import Model1Handler
 from file_manager.Manipulate_Documents import Manipulate_Documents
@@ -17,7 +18,7 @@ from jmetalpy.Model1Problem import Model1Problem
 from metrics.Metric import Overbooking, Underbooking, BadClassroom, RoomMovements, LessonCollisions
 
 
-def filter_drenz(gang_lessons: list):
+def filter_busiest_week(gang_lessons: list):
     values = {}
     for lesson in gang_lessons:
         if lesson.week in values.keys():
@@ -35,6 +36,18 @@ def filter_drenz(gang_lessons: list):
 
     return busiest_week_lessons
 
+# def repeat(g: Gang, alg_lessons: list, num_of_weeks: int):
+#     done_lessons = {}
+#     week = alg_lessons[0].week
+#     for lesson in g.lessons:
+#         exists = False
+#         for alg_lesson in alg_lessons:
+#             #if lessondone_lessons[] TODO
+#             if alg_lesson.subject == lesson.subject and alg_lesson:
+#                 pass
+#
+#         if not exists:
+#             pass  # TODO Doesn't exist on busiest week, add naively
 
 if __name__ == '__main__':
     md = Manipulate_Documents(1)
@@ -43,66 +56,72 @@ if __name__ == '__main__':
                                                   order, ["MM", "DD", "YYYY"])
     classrooms = md.import_classrooms2("input_classrooms/Salas.csv")
     metrics = [LessonCollisions()]
-    num_slots = 30  # 6 slots diários vezes 5 dias
+    weeks = set()
+    for lesson in lessons:
+        weeks.add(lesson.week)
+    num_of_weeks = len(weeks)
+    num_slots = 30*num_of_weeks  # 6 slots diários vezes 5 dias
     classroom_slots = set()
 
-    num_lessons_list = []
+    # num_lessons_list = []
+    # for name, gang in gangs.items():
+    #     num_lessons_list.append(len(gang.lessons))
+    #
+    # max = max(num_lessons_list)
+    # for name, gang in gangs.items():
+    #     if len(gang.lessons) == max:
+    #         aquilo = gang
+    #         break
+    gangs_passed = {}
+
     for name, gang in gangs.items():
-        num_lessons_list.append(len(gang.lessons))
+        gangs_passed["GMKC1"] = gang
 
-    max = max(num_lessons_list)
-    for name, gang in gangs.items():
-        if len(gang.lessons) == max:
-            aquilo = gang
-            break
+        # semana = filter_busiest_week(aquele_gang.lessons)
+        # print(f"len(semana) = {len(semana)}")
 
-    aquele_gang = aquilo
-    gangs = {"GMKC1": aquele_gang}
-    semana = filter_drenz(aquele_gang.lessons)
-    print(f"len(semana) = {len(semana)}")
+        problem = Model1Problem(gang.lessons, classrooms, gangs, num_slots, metrics)
+        algorithm = NSGAII(
+            problem=problem,
+            population_size=100,
+            offspring_population_size=100,
+            # mutation=BitFlipMutation(0.1),
+            mutation=ICOMutation(probability=0.1,
+                                 classrooms=classrooms,
+                                 num_slots=num_slots,
+                                 classroom_slots=classroom_slots),
+            crossover=SPXCrossover(probability=0.8),
+            termination_criterion=StoppingByEvaluations(max_evaluations=500),
+        )
+        print("gonna run")
+        start = time.time()
+        algorithm.run()
+        elapsed_time = time.time() - start
+        print("Elapsed time: ", elapsed_time)
 
-    problem = Model1Problem(semana, classrooms, gangs, num_slots, metrics)
-    algorithm = NSGAII(
-        problem=problem,
-        population_size=100,
-        offspring_population_size=100,
-        # mutation=BitFlipMutation(0.1),
-        mutation=ICOMutation(probability=0.1,
-                             classrooms=classrooms,
-                             num_slots=num_slots,
-                             classroom_slots=classroom_slots),
-        crossover=SPXCrossover(probability=0.8),
-        termination_criterion=StoppingByEvaluations(max_evaluations=5000),
-    )
-    print("gonna run")
-    start = time.time()
-    algorithm.run()
-    elapsed_time = time.time() - start
-    print("Elapsed time: ", elapsed_time)
+        solutions = algorithm.get_result()
+        front = get_non_dominated_solutions(solutions)
 
-    solutions = algorithm.get_result()
-    front = get_non_dominated_solutions(solutions)
+        print(f"length do front: {len(front)}")
+        # sol = problem.create_solution()
+        # front = [sol]
 
-    print(f"length do front: {len(front)}")
-    # sol = problem.create_solution()
-    # front = [sol]
+        metric_percents = []
+        for solution in front:
+            sol_metrics = []
+            handler = Model1Handler(aquele_gang.lessons, classrooms, gangs, num_slots, solution)
+            tuple_dicts = handler.handle_gangs_everything()
+            for metric in metrics:
+                metric.reset_metric()
+                metric.calculate(tuple_dicts)
+                sol_metrics.append(metric.get_percentage())
+            metric_percents.append(sol_metrics)
 
-    metric_percents = []
-    for solution in front:
-        sol_metrics = []
-        handler = Model1Handler(semana, classrooms, gangs, num_slots, solution)
-        tuple_dicts = handler.handle_gangs_everything()
-        for metric in metrics:
-            metric.reset_metric()
-            metric.calculate(tuple_dicts)
-            sol_metrics.append(metric.get_percentage())
-        metric_percents.append(sol_metrics)
-
-    for percents in metric_percents:
-        print("")
-        print("Objectives:")
-        for i in range(len(percents)):
-            print(f"{metrics[i].name}- {percents[i]}")
+        for percents in metric_percents:
+            print("")
+            print("Objectives:")
+            for i in range(len(percents)):
+                print(f"{metrics[i].name}- {percents[i]}")
 
 
     # one_solution = front[int(len(front)/2)]
@@ -112,3 +131,85 @@ if __name__ == '__main__':
     #     print("Objectives:")
     #     for i in range(len(solution.objectives)):
     #         print(f"{metrics[i].name}- {solution.objectives[i]}")
+# if __name__ == '__main__':
+#     md = Manipulate_Documents(1)
+#     order = [0, 1, 2, 3, 4, 5, 6, 7]
+#     lessons, gangs = md.import_lessons_and_gangs2("input_documents/Exemplo_de_horario_primeiro_semestre_ICO.csv",
+#                                                   order, ["MM", "DD", "YYYY"])
+#     classrooms = md.import_classrooms2("input_classrooms/Salas.csv")
+#     metrics = [LessonCollisions()]
+#     weeks = set()
+#     for lesson in lessons:
+#         weeks.add(lesson.week)
+#     num_of_weeks = len(weeks)
+#     num_slots = 30*num_of_weeks  # 6 slots diários vezes 5 dias
+#     classroom_slots = set()
+#
+#      num_lessons_list = []
+#     for name, gang in gangs.items():
+#          num_lessons_list.append(len(gang.lessons))
+#
+#      max = max(num_lessons_list)
+#      for name, gang in gangs.items():
+#          if len(gang.lessons) == max:
+#              aquilo = gang
+#              break
+#
+#
+#
+#         aquele_gang = aquilo
+#         gangs = {"GMKC1": aquele_gang}
+#         semana = filter_busiest_week(aquele_gang.lessons)
+#         print(f"len(semana) = {len(semana)}")
+#
+#         problem = Model1Problem(aquele_gang.lessons, classrooms, gangs, num_slots, metrics)
+#         algorithm = NSGAII(
+#             problem=problem,
+#             population_size=100,
+#             offspring_population_size=100,
+#             # mutation=BitFlipMutation(0.1),
+#             mutation=ICOMutation(probability=0.1,
+#                                  classrooms=classrooms,
+#                                  num_slots=num_slots,
+#                                  classroom_slots=classroom_slots),
+#             crossover=SPXCrossover(probability=0.8),
+#             termination_criterion=StoppingByEvaluations(max_evaluations=500),
+#         )
+#         print("gonna run")
+#         start = time.time()
+#         algorithm.run()
+#         elapsed_time = time.time() - start
+#         print("Elapsed time: ", elapsed_time)
+#
+#         solutions = algorithm.get_result()
+#         front = get_non_dominated_solutions(solutions)
+#
+#         print(f"length do front: {len(front)}")
+#         # sol = problem.create_solution()
+#         # front = [sol]
+#
+#         metric_percents = []
+#         for solution in front:
+#             sol_metrics = []
+#             handler = Model1Handler(aquele_gang.lessons, classrooms, gangs, num_slots, solution)
+#             tuple_dicts = handler.handle_gangs_everything()
+#             for metric in metrics:
+#                 metric.reset_metric()
+#                 metric.calculate(tuple_dicts)
+#                 sol_metrics.append(metric.get_percentage())
+#             metric_percents.append(sol_metrics)
+#
+#         for percents in metric_percents:
+#             print("")
+#             print("Objectives:")
+#             for i in range(len(percents)):
+#                 print(f"{metrics[i].name}- {percents[i]}")
+#
+#
+#     # one_solution = front[int(len(front)/2)]
+#     # print(one_solution.objectives)
+#     # for solution in front:
+#     #     print("")
+#     #     print("Objectives:")
+#     #     for i in range(len(solution.objectives)):
+#     #         print(f"{metrics[i].name}- {solution.objectives[i]}")

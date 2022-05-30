@@ -16,7 +16,7 @@ class Lesson:
         self.duration = duration
         self.requested_characteristics = requested_characteristics
         self.dateformat_list = dateformat_list
-        self.assignment = None
+        self.assignment = None  # (Classroom, TimeSlot)
 
     def get_requested_characteristics(self) -> str:
         '''
