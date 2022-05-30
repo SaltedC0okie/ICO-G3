@@ -74,7 +74,7 @@ def addAssignments(gang_list_of_lessons, classrooms, solution):
 
 
 
-if __name__ == '__main__':
+def novo_algoritmo():
 
     # Imports and variable declarations
     md = Manipulate_Documents(1)
@@ -130,6 +130,11 @@ if __name__ == '__main__':
         # Update used Classrooms on timeslot
         for lesson in gang.lessons:
             classroom_slots.add(lesson.assignment)
+
+
+
+
+    # Determine Métrics:
 
     # Make dict with lesson, timeslot and classroom
     lesson_timeslot_classroom_dict = {lesson: (lesson.assignment[1], lesson.assignment[0]) for lesson in lessons}
