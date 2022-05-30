@@ -431,7 +431,11 @@ class Manipulate_Documents:
         for g in lesson_gangs:
             g.add_lesson(lesson)
 
-    def export_schedule_dict_ts_lc(self, dict_ts_lc: dict, file_name: str) -> List[str]:
+    def weekday_to_string(self, weekday: int):
+        weekdays = ["Seg", "Ter", "Qua", "Qui", "Sex"]
+        return weekdays[weekday]
+
+    def export_schedule_dict_ts_lc(self, dict_ts_lc: dict) -> List[str]:
         """
         Export to a csv file the list of Lesson objects
         :param dict_ts_lc: Dict[TimeSLot -> List[(Lesson, Classroom)]]
@@ -464,17 +468,17 @@ class Manipulate_Documents:
                 str_to_add = (lesson.course + ";" +
                               lesson.subject + ";" +
                               lesson.shift + ";" +
-                              lesson.gang_list + ";" +
-                              date_lesson_start.weekday + ";" +
+                              self.list_to_comma_sep_string(lesson.gang_list) + ";" +
+                              self.weekday_to_string(weekday) + ";" +
                               date_lesson_start.strftime("%H:%M:%S") + ";" +
                               date_lesson_end.strftime("%H:%M:%S") + ";" +
                               date_lesson_start.strftime("%m/%d/%Y") + ";" +
-                              lesson.requested_characteristics + ";"
-                              )
+                              lesson.requested_characteristics + ";")
+
                 if classroom:
                     rows.append(str_to_add +
                                 classroom.name + ";" +
-                                classroom.normal_capacity + ";" +
+                                str(classroom.normal_capacity) + ";" +
                                 self.list_to_comma_sep_string(classroom.characteristics)
                                 )
                 else:

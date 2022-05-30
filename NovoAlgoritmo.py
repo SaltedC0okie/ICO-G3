@@ -93,7 +93,7 @@ def novo_algoritmo(lessons, gangs, classrooms, metrics):
     iter = 0
     for name, gang in gangs.items():
         iter += 1
-        print(f"iter={iter}")
+        # print(f"iter={iter}")
         # Make problem and run alg
         gangs_weird = {name: gang}
         problem = Model1Problem(gang.lessons, classrooms, gangs_weird, num_slots, metrics)
@@ -110,16 +110,16 @@ def novo_algoritmo(lessons, gangs, classrooms, metrics):
             crossover=SPXCrossover(probability=0.8),
             termination_criterion=StoppingByEvaluations(max_evaluations=1),
         )
-        print("gonna run")
+        # print("gonna run")
         start = time.time()
         algorithm.run()
         elapsed_time = time.time() - start
-        print("Elapsed time: ", elapsed_time)
+        # print("Elapsed time: ", elapsed_time)
 
         # Make front
         solutions = algorithm.get_result()
         front = get_non_dominated_solutions(solutions)
-        print(f"length do front: {len(front)}")
+        # print(f"length do front: {len(front)}")
 
         # Get possible best solution (with no extremes)
         closest_solution = get_closest_solution(front)
