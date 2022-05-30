@@ -52,7 +52,7 @@ def filter_busiest_week(gang_lessons: list):
 #             pass  # TODO Doesn't exist on busiest week, add naively
 
 # def get_closest_solution(front: list):
-#     sum_total = [sum(s.objectives) for s in front]
+#     sum_total = [sum(s.objectives)/len(s.objectives) for s in front]
 #     index_min = min(range(len(sum_total)), key=sum_total.__getitem__)
 #     return front[index_min]
 
@@ -118,7 +118,7 @@ def novo_algoritmo(lessons, gangs, classrooms, metrics):
                                  num_slots=num_slots,
                                  classroom_slots=classroom_slots),
             crossover=SPXCrossover(probability=0.8),
-            termination_criterion=StoppingByEvaluations(max_evaluations=100)
+            termination_criterion=StoppingByEvaluations(max_evaluations=200)
         )
         # print("gonna run")
         start = time.time()

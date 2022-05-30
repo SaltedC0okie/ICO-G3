@@ -154,8 +154,6 @@ def results(request):
                 metrics.append(RoomMovements())
             if metric == "BuildingMovements":
                 metrics.append(BuildingMovements())
-            if metric == "ClassroomInconsistency":
-                metrics.append(ClassroomInconsistency())
             if metric == "ClassroomCollisions":
                 metrics.append(ClassroomCollisions())
             if metric == "LessonInconsistency":

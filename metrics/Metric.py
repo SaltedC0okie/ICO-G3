@@ -1,4 +1,5 @@
 import datetime
+import math
 from typing import List
 from abc import ABC, abstractmethod
 from jmetal.core.problem import Problem
@@ -163,7 +164,7 @@ class BadClassroom(Metric):
 
         for lesson in dict_lesson_timeslot_classroom.keys():
             classroom = dict_lesson_timeslot_classroom[lesson][1]
-            if classroom and lesson.requested_characteristics not in classroom.characteristics:
+            if classroom is not None and lesson.requested_characteristics not in classroom.characteristics:
                 self.value += 1
             self.total += 1
 
@@ -450,8 +451,8 @@ class ClassroomCollisions(Metric):
 
             for timeslot, classroom in dict_lesson_timeslot_classroom.values():
                 possible_collisions += 1
-                if classroom not in classrooms_set:
-                    classrooms_set.add(classroom)
+                if (classroom, timeslot) not in classrooms_set:
+                    classrooms_set.add((classroom, timeslot))
                 else:
                     collisions += 1
 
@@ -459,6 +460,7 @@ class ClassroomCollisions(Metric):
             self.total = possible_collisions
 
         except AttributeError:
+            print("OH NO, OUR TABLE, ITS BROKEN")
             self.value = -1
             self.total = 1
 
@@ -702,7 +704,7 @@ class LessonInconsistency(Metric):
         super().__init__("LessonInconsistency", prefered_max)
         self.objective = Problem.MINIMIZE
         self.m_type = "gangsWithEverything"  # ( dict[String->Gang], dict[Lesson->(TimeSlot, Classroom)] )
-        self.value = []
+        self.value = 0
 
     def calculate(self, handle_gangs_everything: (dict, dict)):
         """
@@ -729,19 +731,26 @@ class LessonInconsistency(Metric):
                     actual_timeslot = dict_lesson_timeslot_classroom_sorted[lesson][0]
 
                     if lesson.subject not in dict_subject.keys():
-                        dict_subject[lesson.subject] = [{actual_timeslot}, 1]
+                        dict_subject[lesson.subject] = {f"{actual_timeslot.weekday}.{actual_timeslot.hour}."
+                                                        f"{actual_timeslot.minute}"}
                     else:
-                        dict_subject[lesson.subject][0].add(actual_timeslot)
-                        dict_subject[lesson.subject][1] = dict_subject[lesson.subject][1] + 1
+                        dict_subject[lesson.subject].add(f"{actual_timeslot.weekday}.{actual_timeslot.hour}."
+                                                         f"{actual_timeslot.minute}")
 
-            for ts, pts in dict_subject.values():
-                self.value.append((len(ts), pts))
+            i = 0
+            for ts in dict_subject.values():
+                self.value += len(ts)
+                i += 1
+            if i != 0:
+                self.value = self.value / i
+            else:
+                self.value = 0
 
     def get_total_metric_value(self):
-        return sum([m[0] for m in self.value])
+        return self.value
 
     def get_percentage(self):
-        return sum([m[0] for m in self.value]) / sum([m[1] for m in self.value])
+        return 1 / (1 + math.exp(-0.7*(self.value - 5)))
 
     def reset_metric(self):
-        self.value = []
+        self.value = 0
