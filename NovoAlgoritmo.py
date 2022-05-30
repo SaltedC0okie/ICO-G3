@@ -37,6 +37,7 @@ def filter_busiest_week(gang_lessons: list):
 
     return busiest_week_lessons
 
+
 # def repeat(g: Gang, alg_lessons: list, num_of_weeks: int):
 #     done_lessons = {}
 #     week = alg_lessons[0].week
@@ -55,7 +56,8 @@ def get_closest_solution(front: list):
     index_min = min(range(len(sum_total)), key=sum_total.__getitem__)
     return front[index_min]
 
-def addAssignments(gang_list_of_lessons, classrooms, solution):
+
+def addAssignments(gang_list_of_lessons, classrooms, solution, num_slots):
     num_bits_classroom = int(math.log(len(classrooms), 2) + 1)
 
     for i, assignment in enumerate(solution.variables):
@@ -73,9 +75,7 @@ def addAssignments(gang_list_of_lessons, classrooms, solution):
             lesson.assignment = (classroom, timeslot)
 
 
-
 def novo_algoritmo():
-
     # Imports and variable declarations
     md = Manipulate_Documents(1)
     order = [0, 1, 2, 3, 4, 5, 6, 7]
@@ -87,7 +87,7 @@ def novo_algoritmo():
     for lesson in lessons:
         weeks.add(lesson.week)
     num_of_weeks = len(weeks)
-    num_slots = 30*num_of_weeks  # 6 slots diários vezes 5 dias
+    num_slots = 30 * num_of_weeks  # 6 slots diários vezes 5 dias
 
     classroom_slots = set()
     iter = 0
@@ -99,17 +99,17 @@ def novo_algoritmo():
         problem = Model1Problem(gang.lessons, classrooms, gangs_weird, num_slots, metrics)
 
         algorithm = NSGAII(
-                        problem=problem,
-                        population_size=100,
-                        offspring_population_size=100,
-                        # mutation=BitFlipMutation(0.1),
-                        mutation=ICOMutation(probability=0.1,
-                                             classrooms=classrooms,
-                                             num_slots=num_slots,
-                                             classroom_slots=classroom_slots),
-                        crossover=SPXCrossover(probability=0.8),
-                        termination_criterion=StoppingByEvaluations(max_evaluations=10),
-                    )
+            problem=problem,
+            population_size=100,
+            offspring_population_size=100,
+            # mutation=BitFlipMutation(0.1),
+            mutation=ICOMutation(probability=0.1,
+                                 classrooms=classrooms,
+                                 num_slots=num_slots,
+                                 classroom_slots=classroom_slots),
+            crossover=SPXCrossover(probability=0.8),
+            termination_criterion=StoppingByEvaluations(max_evaluations=10),
+        )
         print("gonna run")
         start = time.time()
         algorithm.run()
@@ -125,14 +125,11 @@ def novo_algoritmo():
         closest_solution = get_closest_solution(front)
 
         # Assign the solution classrooms and timeslots to the lessons of the gang
-        addAssignments(gang.lessons, classrooms, closest_solution)
+        addAssignments(gang.lessons, classrooms, closest_solution, num_slots)
 
         # Update used Classrooms on timeslot
         for lesson in gang.lessons:
             classroom_slots.add(lesson.assignment)
-
-
-
 
     # Determine Métrics:
 
@@ -157,7 +154,6 @@ def novo_algoritmo():
 
     # for lesson, t in lesson_timeslot_classroom_dict.items():
     #     print(f"{lesson} -> ({t[0]}, {t[1]})")
-
 
 # if __name__ == '__main__':
 #     md = Manipulate_Documents(1)

@@ -25,7 +25,7 @@ class Manipulate_Documents:
         self.output_path = output_path
         self.input_classrooms = input_classrooms
         # TODO
-        self.semestera_starting_day = semester_starting_day
+        self.semester_starting_day = semester_starting_day
         self.classroom_list = []
 
     # Código Carlos
@@ -486,6 +486,16 @@ class Manipulate_Documents:
         # weekday must be int (do this when importing)
         week_to_sum = timedelta(weeks=week)
         actual_date = week_to_sum + starting_day
-        actual_date.weekday = weekday
+        monday = actual_date - timedelta(days=starting_day.weekday())
+        actual_date = (monday + timedelta(days=weekday))
         actual_date = actual_date.replace(hour=hour, minute=minute)
         return actual_date
+
+
+if __name__ == "__main__":
+    mp = Manipulate_Documents("05/31/2022")
+    semester_starting_day_list = mp.semester_starting_day.split("/")
+    starting_day = datetime.strptime(f"{semester_starting_day_list[0]}/{semester_starting_day_list[1]}"
+                                     f"/{semester_starting_day_list[2]}", "%m/%d/%Y")
+
+    print(mp.calculate_day(2, 0, 12, 0, starting_day))

@@ -19,7 +19,8 @@ from alocate.weekly_allocation import weekly_allocation
 from file_manager.Manipulate_Documents import *
 
 from metrics.Metric import Gaps, RoomlessLessons, Overbooking, Underbooking, BadClassroom, RoomMovements, \
-    BuildingMovements, ClassroomInconsistency, ClassroomCollisions
+    BuildingMovements, ClassroomInconsistency, ClassroomCollisions, LessonCollisions, GangLessonVolume, \
+    GangLessonDistribution, LessonInconsistency
 from django.shortcuts import render
 from lesson.Lesson import *
 
@@ -34,8 +35,10 @@ global schedule_overbooking
 global schedule_weekly
 global progress
 
+
 def index(request):
     return render(request, 'index.html')
+
 
 def data(request):
     request.session["metrics"] = request.POST.getlist('metrics')
@@ -51,19 +54,21 @@ def data(request):
     # request.FILES[0] = 123
 
     headers = ["Course", "Subject", "Shift", "Class", "Enrolled", "Week", "Duration",
-                     "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
+               "Requested_Char", "Classroom", "Capacity", "Actual_Char"]
 
     return render(request, 'data.html', {"hlist": headers})
+
 
 def progress_bar(request):
     if request.method == 'GET':
         global progress
         percent = progress.get_progress()
-        #print("Progress: ", percent, "%")
-        return JsonResponse({'percent':str(round(percent, 1)), 'error':'0'})
+        # print("Progress: ", percent, "%")
+        return JsonResponse({'percent': str(round(percent, 1)), 'error': '0'})
     else:
         print("\nNot get, kinda weird\n")
-        return JsonResponse({'percent':'0', 'error':'1'})
+        return JsonResponse({'percent': '0', 'error': '1'})
+
 
 def results(request):
     if request.method == 'POST' and request.FILES['schedulefilename']:
@@ -83,8 +88,6 @@ def results(request):
         lesson_list, gang_dict = mp.import_lessons_and_gangs(mySchedule, order, dateformat_list, encoding)
         metrics_chosen = request.session['metrics']
 
-
-
         values = {}
         for lesson in lesson_list:
             if lesson.week in values.keys():
@@ -98,22 +101,16 @@ def results(request):
         lesson_list = busiest_week_lessons  # TODO TEMPORÁRIO
         print("HEY I'M HERE   : ", len(lesson_list))
 
-
         metrics = []
-        metrics_jmp_compatible = []
         for metric in metrics_chosen:
             if metric == "RoomlessLessons":
                 metrics.append(RoomlessLessons())
-                metrics_jmp_compatible.append(RoomlessLessons())
             if metric == "Overbooking":
                 metrics.append(Overbooking())
-                metrics_jmp_compatible.append(Overbooking())
             if metric == "Underbooking":
                 metrics.append(Underbooking())
-                metrics_jmp_compatible.append(Underbooking())
             if metric == "BadClassroom":
                 metrics.append(BadClassroom())
-                metrics_jmp_compatible.append(BadClassroom())
             if metric == "Gaps":
                 metrics.append(Gaps())
             if metric == "RoomMovements":
@@ -124,6 +121,14 @@ def results(request):
                 metrics.append(ClassroomInconsistency())
             if metric == "ClassroomCollisions":
                 metrics.append(ClassroomCollisions())
+            if metric == "LessonInconsistency":
+                metrics.append(LessonInconsistency())
+            if metric == "LessonCollisions":
+                metrics.append(LessonCollisions())
+            if metric == "GangLessonVolume":
+                metrics.append(GangLessonVolume())
+            if metric == "GangLessonDistribution":
+                metrics.append(GangLessonDistribution())
 
         if 'classroomfilename' in request.FILES:
             myClassroom = request.FILES['classroomfilename']
@@ -131,7 +136,6 @@ def results(request):
             classrooms = mp.import_uploaded_classrooms(request.FILES['classroomfilename'])
         else:
             classrooms = mp.import_classrooms()
-
 
         # count = Algorithm_Utils.check_for_collisions(a_jmp)
         #
@@ -212,7 +216,6 @@ def results(request):
         # schedule_simple = a_simple
         # schedule_overbooking = schedule_nuno
         # schedule_weekly = schedule_andre
-
 
         # table columns
 

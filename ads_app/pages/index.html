@@ -31,8 +31,8 @@
 		<form class="content" action="data" method="POST" enctype="multipart/form-data">{% csrf_token %}
 			<br>
 			<p>Please input the starting day of the semestre</p>
-			<input type="text" class="starting_day" id="Semester_starting_day" name="Semester_starting_day" required>    <label class="starting_day" for="Semester_starting_day">Semester Starting Day</label> <br>
-
+			<input type="text" class="starting_day" id="Semester_starting_day" name="Semester_starting_day" required>
+			<label class="starting_day" for="Semester_starting_day">Semester Starting Day</label> <br>
 			<br>
 			<p>Select Metrics to evaluate the algorithm- To select multiple metrics, press CTRL + Left Click</p>
 			<select name="metrics" id="metrics" multiple>
@@ -40,11 +40,15 @@
 				<option value="Overbooking">Overbooking</option>
 				<option value="Underbooking">Underbooking</option>
 				<option value="BadClassroom">BadClassroom</option>
-					<option value="Gaps">Gaps</option>
-					<option value="RoomMovements">RoomMovements</option>
-					<option value="BuildingMovements">BuildingMovements</option>
-					<option value="UsedRooms">UsedRooms</option>
-					<option value="ClassroomInconsistency">ClassroomInconsistency</option>
+				<option value="Gaps">Gaps</option>
+				<option value="RoomMovements">RoomMovements</option>
+				<option value="BuildingMovements">BuildingMovements</option>
+				<option value="ClassroomInconsistency">ClassroomInconsistency</option>
+				<option value="ClassroomCollisions">ClassroomCollisions</option>
+				<option value="LessonInconsistency">LessonInconsistency</option>
+				<option value="LessonCollisions">LessonCollisions</option>
+				<option value="GangLessonVolume">GangLessonVolume</option>
+				<option value="GangLessonDistribution">GangLessonDistribution</option>
 			</select>
 			<br><br>
 

@@ -22,11 +22,15 @@
 	<link rel="stylesheet" href="{% static 'ads_app/styles.css' %}">
 	<body>
 		<br>
-		<form class="content" action="download_file" method="POST" enctype="multipart/form-data">{% csrf_token %}
+		<form class="content" action="download_file" method="POST" enctype="multipart/form-data">
+			{% csrf_token %}
+			<label id="hidden_simple" name="hidden_simple" style="display: none;" type="hidden">{{simple_algorithm}}</label>
+
+		<!--<form class="content" action="download_file" method="POST" enctype="multipart/form-data">{% csrf_token %}
 			<label id="hidden_simple" name="hidden_simple" style="display: none;" type="hidden">{{simple_algorithm}}</label>
 			<label id="hidden_weekly" name="hidden_weekly" style="display: none;" type="hidden">{{weekly_algorithm}}</label>
 			<label id="hidden_overbooking" name="hidden_overbooking" style="display: none;" type="hidden">{{overbooking_algorithm}}</label>
-
+		-->
 
 			<br>
 			<br>
